@@ -36,7 +36,7 @@
     }
 
     .imgCompresser .container {
-      max-width: 1100px;
+      max-width: 1320px;
     }
 
     .imgCompresser h1 {
@@ -338,21 +338,43 @@
 
     /* ---------------------------------------------------- settings bar */
 
-    .settingsBar {
+    /* Drop target left, tools right. Both stretch to the same height so the
+       pair reads as one block. */
+    .workRow {
       display: flex;
-      flex-wrap: wrap;
-      gap: 22px;
-      align-items: flex-end;
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 30px;
+    }
+
+    .workMain {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+    }
+
+    .workMain .dropZone {
+      flex: 1 1 auto;
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settingsBar {
+      flex: 0 0 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
       background: rgba(255, 255, 255, .85);
       border: 1px solid var(--line);
       border-radius: 18px;
-      padding: 18px 22px;
-      margin-top: 16px;
+      padding: 20px 22px;
       backdrop-filter: blur(8px);
       box-shadow: 0 4px 18px rgba(28, 35, 51, .05);
     }
 
-    .setting { flex: 1 1 170px; }
+    .setting { flex: 0 0 auto; }
 
     /* Small caps captions so the label never competes with its value. */
     .setting > label {
@@ -367,15 +389,21 @@
       margin-bottom: 9px;
     }
 
-    .settingWide { flex: 2 1 240px; position: relative; }
-    .settingCheck { flex: 1 1 190px; }
+    .settingWide { position: relative; }
 
+    /* Pinned to the bottom of the panel, and only present once there is
+       something to act on. */
     .settingActions {
-      flex: 0 0 auto;
       display: flex;
       gap: 10px;
-      margin-left: auto;
+      margin-top: auto;
+      padding-top: 4px;
     }
+
+    .settingActions[hidden] { display: none; }
+    .settingActions .btn { flex: 1 1 auto; justify-content: center; }
+
+    .settingsBar .form-select { width: 100%; }
 
     .qBadge {
       background: var(--accent);
@@ -418,7 +446,7 @@
 
     /* Range: filled portion is painted by a wide box-shadow on the thumb,
        clipped by the track. Keeps it pure CSS with no script involved. */
-    .settingsBar .form-range {
+    .rng {
       -webkit-appearance: none;
       appearance: none;
       width: 100%;
@@ -428,23 +456,23 @@
       cursor: pointer;
     }
 
-    .settingsBar .form-range:focus { outline: none; box-shadow: none; }
+    .rng:focus { outline: none; box-shadow: none; }
 
     /* Keyboard users still need to see where focus is. */
-    .settingsBar .form-range:focus-visible {
+    .rng:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
       border-radius: 8px;
     }
 
-    .settingsBar .form-range::-webkit-slider-runnable-track {
+    .rng::-webkit-slider-runnable-track {
       height: 6px;
       border-radius: 6px;
       background: #e4e9f3;
       overflow: hidden;
     }
 
-    .settingsBar .form-range::-webkit-slider-thumb {
+    .rng::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 18px;
       height: 18px;
@@ -456,21 +484,21 @@
       transition: transform .12s ease;
     }
 
-    .settingsBar .form-range:active::-webkit-slider-thumb { transform: scale(1.15); }
+    .rng:active::-webkit-slider-thumb { transform: scale(1.15); }
 
-    .settingsBar .form-range::-moz-range-track {
+    .rng::-moz-range-track {
       height: 6px;
       border-radius: 6px;
       background: #e4e9f3;
     }
 
-    .settingsBar .form-range::-moz-range-progress {
+    .rng::-moz-range-progress {
       height: 6px;
       border-radius: 6px;
       background: var(--accent);
     }
 
-    .settingsBar .form-range::-moz-range-thumb {
+    .rng::-moz-range-thumb {
       width: 14px;
       height: 14px;
       border: 3px solid var(--accent);
@@ -478,14 +506,12 @@
       background: #fff;
     }
 
-    /* Hint is taken out of flow so the row does not jump when it appears. */
+    /* In a vertical panel the hint can sit in flow - it has room, and taking
+       it out would overlap the control below it. */
     .settingWide .hint {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      margin-top: -2px;
       min-height: 0;
-      white-space: nowrap;
+      margin-top: 2px;
+      line-height: 1.35;
     }
 
     .settingCheck .form-check {
@@ -550,7 +576,10 @@
 
     @media (prefers-reduced-motion: reduce) {
       .orb, .heroTitle, .pill .dot, .dropIcon .pulse, .dropIcon svg path,
-      .chip, .skeleton, .dropZone.dragging::before {
+      .chip, .skeleton, .dropZone.dragging::before,
+      .progressCard.show, .progressCard::after, .progressCard .fill,
+      .progressCard .fill::after, .progressCard .bar::after, .resultCard,
+      .pressLoader .plate, .pressLoader .stack i, .pressLoader .spark {
         animation: none !important;
       }
       .dropZone { transition: none; }
@@ -612,6 +641,7 @@
     }
 
     .resultCard {
+      position: relative;
       background: #fff;
       border: 1px solid var(--line);
       border-radius: 16px;
@@ -649,31 +679,229 @@
     /* Inline, non blocking progress. The page stays usable while encoding. */
     .progressCard {
       display: none;
+      position: relative;
+      overflow: hidden;
       align-items: center;
       gap: 16px;
       background: #fff;
-      border: 1px solid var(--line);
+      border: 1px solid #c9daff;
       border-radius: 14px;
       padding: 14px 18px;
       margin-bottom: 18px;
     }
 
-    .progressCard.show { display: flex; }
-    .progressCard img { width: 64px; height: auto; }
+    /* Drops in, then breathes a soft ring for as long as work is running, so
+       the active area is obvious without blocking anything. */
+    .progressCard.show {
+      display: flex;
+      animation:
+        progressIn .38s cubic-bezier(.2, .8, .3, 1) both,
+        progressGlow 2.1s ease-in-out .38s infinite;
+    }
+
+    @keyframes progressIn {
+      from { opacity: 0; transform: translateY(-10px) scale(.985); }
+    }
+
+    @keyframes progressGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, .26); }
+      50% { box-shadow: 0 0 0 7px rgba(37, 99, 235, .05); }
+    }
+
+    /* Light sweeping across the card, left to right. */
+    .progressCard::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(100deg,
+        transparent 32%, rgba(37, 99, 235, .09) 50%, transparent 68%);
+      background-size: 240% 100%;
+      animation: cardSweep 2.4s linear infinite;
+    }
+
+    @keyframes cardSweep { to { background-position: -240% 0; } }
+
+    /* Suspended while the viewer is open - stop implying work is happening. */
+    .progressCard.paused { border-color: #e3d4a8; }
+    .progressCard.paused,
+    .progressCard.paused::after,
+    .progressCard.paused .fill,
+    .progressCard.paused .fill::after,
+    .progressCard.paused .bar::after,
+    .progressCard.paused .pressLoader .plate,
+    .progressCard.paused .pressLoader .stack i,
+    .progressCard.paused .pressLoader .spark { animation-play-state: paused; }
+    .progressCard.paused #progressText { color: #9a7b2f; }
+
+    /* ---------------------------------------------------- press loader */
+
+    .pressLoader {
+      position: relative;
+      flex: 0 0 auto;
+      width: 54px;
+      height: 54px;
+    }
+
+    .pressLoader .plate {
+      position: absolute;
+      left: 3px;
+      right: 3px;
+      height: 5px;
+      border-radius: 3px;
+      background: var(--accent);
+    }
+
+    .pressLoader .plate.top { top: 4px; animation: plateDown 1.7s ease-in-out infinite; }
+    .pressLoader .plate.bottom { bottom: 4px; animation: plateUp 1.7s ease-in-out infinite; }
+
+    @keyframes plateDown {
+      0%, 100% { transform: translateY(0); }
+      42%, 62% { transform: translateY(10px); }
+    }
+
+    @keyframes plateUp {
+      0%, 100% { transform: translateY(0); }
+      42%, 62% { transform: translateY(-10px); }
+    }
+
+    /* The layers being squashed. */
+    .pressLoader .stack {
+      position: absolute;
+      inset: 13px 5px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .pressLoader .stack i {
+      display: block;
+      height: 6px;
+      border-radius: 3px;
+      background: #a9c8ff;
+      transform-origin: center;
+      animation: squash 1.7s ease-in-out infinite;
+    }
+
+    .pressLoader .stack i:nth-child(2) { background: #6c9fff; animation-delay: .04s; }
+    .pressLoader .stack i:nth-child(3) { animation-delay: .08s; }
+
+    @keyframes squash {
+      0%, 100% { transform: scaleY(1); opacity: .9; }
+      42%, 62% { transform: scaleY(.3); opacity: 1; }
+    }
+
+    /* Two bytes squeezed out at the moment of maximum pressure. */
+    .pressLoader .spark {
+      position: absolute;
+      top: 50%;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+    }
+
+    .pressLoader .spark.s1 { left: 4px; animation: sparkLeft 1.7s ease-out infinite; }
+    .pressLoader .spark.s2 { right: 4px; animation: sparkRight 1.7s ease-out infinite; }
+
+    @keyframes sparkLeft {
+      0%, 40% { transform: translate(0, -50%) scale(.4); opacity: 0; }
+      52% { opacity: 1; }
+      72%, 100% { transform: translate(-9px, -50%) scale(1); opacity: 0; }
+    }
+
+    @keyframes sparkRight {
+      0%, 40% { transform: translate(0, -50%) scale(.4); opacity: 0; }
+      52% { opacity: 1; }
+      72%, 100% { transform: translate(9px, -50%) scale(1); opacity: 0; }
+    }
+
     .progressCard .bar {
+      position: relative;
       flex: 1;
-      height: 8px;
+      height: 10px;
       border-radius: 8px;
-      background: #eaeef6;
+      background: #e8edf7;
       overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(28, 35, 51, .06);
+    }
+
+    /* Indeterminate sweep along the track, so the bar still shows life at 0%
+       - which is exactly where it sits while the first image encodes. */
+    .progressCard .bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 32%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, transparent, rgba(37, 99, 235, .22), transparent);
+      animation: indeterminate 1.5s ease-in-out infinite;
+    }
+
+    @keyframes indeterminate {
+      0% { transform: translateX(-110%); }
+      100% { transform: translateX(420%); }
     }
 
     .progressCard .fill {
+      position: relative;
       height: 100%;
       width: 0;
-      background: var(--accent);
       border-radius: 8px;
+      overflow: hidden;
+      background: linear-gradient(90deg, #2563eb, #5b95ff, #2563eb);
+      background-size: 200% 100%;
+      box-shadow: 0 0 10px rgba(37, 99, 235, .5);
       transition: width .25s ease;
+      animation: fillFlow 1.8s linear infinite;
+    }
+
+    @keyframes fillFlow { to { background-position: -200% 0; } }
+
+    /* Barber pole stripes, so the bar still reads as busy between steps. */
+    .progressCard .fill::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(115deg,
+        rgba(255, 255, 255, .3) 25%, transparent 25%,
+        transparent 50%, rgba(255, 255, 255, .3) 50%,
+        rgba(255, 255, 255, .3) 75%, transparent 75%);
+      background-size: 22px 22px;
+      animation: stripes .75s linear infinite;
+    }
+
+    @keyframes stripes { to { background-position: 22px 0; } }
+
+    /* Quality this image was actually encoded at, in the card's top corner. */
+    /* Shown only on images whose quality differs from the global setting. */
+    .cardQualityTag {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      z-index: 2;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .03em;
+      background: var(--accent);
+      color: #fff;
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 3px 11px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, .3);
+    }
+
+    .cardQualityTag[hidden] { display: none; }
+
+    /* Each finished image slides into place instead of just appearing. */
+    .resultCard { animation: cardIn .4s cubic-bezier(.2, .8, .3, 1) both; }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(12px); }
     }
 
     /* ---------------------------------------------------------- viewer */
@@ -730,6 +958,31 @@
 
     .vgroup { display: flex; gap: 4px; align-items: center; }
 
+    .vQualityGroup { gap: 8px; }
+
+    .vLabel {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #8d97a8;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    /* Same slider, darkened for the toolbar. */
+    .vrng { width: 118px; height: 26px; }
+    .vrng::-webkit-slider-runnable-track { background: #2c3542; }
+    .vrng::-moz-range-track { background: #2c3542; }
+
+    .vStatus {
+      font-size: 12px;
+      color: #7f9dd8;
+      min-width: 96px;
+    }
+
+    .vQualityGroup.busy .vrng { opacity: .5; pointer-events: none; }
+
     #zoomLabel {
       min-width: 62px;
       text-align: center;
@@ -765,28 +1018,27 @@
     .pane.dragging { cursor: grabbing; }
     .pane[hidden] { display: none; }
 
-    /* transform-origin 0 0 keeps the pan/zoom maths simple and identical
-       across every pane, which is what keeps the two views in sync. */
-    .pane img {
+    /* Each pane is a canvas exactly the size of its box. Panning repaints the
+       visible slice only, so cost is fixed by the pane size and never by the
+       size of the image - which is what stops the stutter on huge photos. */
+    .pane canvas {
       position: absolute;
-      top: 0;
-      left: 0;
-      transform-origin: 0 0;
-      max-width: none;
-      max-height: none;
-      /* The pane owns every pointer event. Without this the browser starts its
-         own native image drag (complete with ghost thumbnail) the moment you
-         press on the picture, which fights the pan and looks like glitching.
-         No will-change here on purpose: promoting a 37 MP image to its own
-         composited layer forces a full raster and tears while panning. */
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-user-drag: none;
     }
 
-    .pane.pixelated img,
-    canvas.pixelated { image-rendering: pixelated; }
+    /* Decoded originals, kept out of the layout. drawImage reads from these. */
+    .srcImages {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
 
     .paneTag {
       position: absolute;
@@ -805,14 +1057,6 @@
 
     #sideWrap { display: flex; flex: 1; gap: 2px; min-width: 0; }
     #sideWrap[hidden] { display: none; }
-
-    .clipLayer {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      width: 50%;
-      z-index: 2;
-    }
 
     .sliderHandle {
       position: absolute;
@@ -859,9 +1103,20 @@
 
     .viewerFoot strong { color: #e6e9ef; }
 
+    /* Narrower than this and the side panel would squeeze the drop target, so
+       the two stack instead. */
+    @media(max-width:991px) {
+      .workRow { flex-direction: column; }
+      .settingsBar { flex: 1 1 auto; }
+      .settingActions { margin-top: 4px; }
+    }
+
     @media(max-width:767px) {
       body { padding-top: 0; }
       .imgCompresser h1 { font-size: 30px; }
+      .heroTitle { font-size: 32px; }
+      .hero { padding: 30px 0 22px; }
+      .workRow { margin-top: 20px; }
       #sideWrap { flex-direction: column; }
       .viewerTitle { width: 100%; margin-right: 0; }
     }
@@ -888,8 +1143,10 @@
           </div>
         </div>
 
-        <div class="row">
-          <div class="col-12">
+        <!-- Drop target and tools sit side by side so the page uses its width
+             instead of stacking everything down the middle. -->
+        <div class="workRow">
+          <div class="workMain">
             <!-- The whole card is the drop target. The real <input> stays in the
                  DOM (visually hidden) so the file picker and form semantics are
                  untouched - the label below opens it. -->
@@ -921,69 +1178,75 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="row">
-          <div class="col-12">
-            <div class="settingsBar">
-              <div class="setting">
-                <label for="format">Output format</label>
-                <select class="form-select" id="format">
-                  <option value="auto" selected>Keep original format</option>
-                  <option value="webp">WebP (smallest)</option>
-                  <option value="jpeg">JPEG</option>
-                  <option value="png">PNG</option>
-                </select>
-              </div>
+          <aside class="settingsBar" aria-label="Compression settings">
+            <div class="setting">
+              <label for="format">Output format</label>
+              <select class="form-select" id="format">
+                <option value="auto" selected>Keep original format</option>
+                <option value="webp">WebP (smallest)</option>
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+              </select>
+            </div>
 
-              <div class="setting settingWide">
-                <label for="quality">Quality <span class="qBadge" id="qualityValue">60</span></label>
-                <input type="range" class="form-range" id="quality" min="5" max="100" step="5" value="60">
-                <div class="hint" id="qualityHint"></div>
-              </div>
+            <div class="setting settingWide">
+              <label for="quality">Quality <span class="qBadge" id="qualityValue">60</span></label>
+              <input type="range" class="form-range rng" id="quality" min="5" max="100" step="5" value="60">
+              <div class="hint" id="qualityHint"></div>
+            </div>
 
-              <div class="setting settingCheck">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="dither">
-                  <label class="form-check-label fileMeta" for="dither">
-                    Dither PNG
-                    <span class="fileMeta d-block">smoother gradients, larger files</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="setting settingActions">
-                <button class="btn btn-outline-secondary" id="downloadBtn" type="button" disabled>
-                  Download all
-                </button>
-                <button class="btn btn-outline-secondary" id="clearBtn" type="button" disabled>
-                  Clear
-                </button>
+            <div class="setting settingCheck">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="dither">
+                <label class="form-check-label fileMeta" for="dither">
+                  Dither PNG
+                  <span class="fileMeta d-block">smoother gradients, larger files</span>
+                </label>
               </div>
             </div>
-          </div>
+
+            <!-- Nothing to download or clear until images are loaded, so this
+                 whole block stays out of the way until then. -->
+            <div class="settingActions" id="settingActions" hidden>
+              <button class="btn btn-primary" id="downloadBtn" type="button" disabled>
+                Download all
+              </button>
+              <button class="btn btn-outline-secondary" id="clearBtn" type="button">
+                Clear
+              </button>
+            </div>
+          </aside>
         </div>
       </div>
     </div>
 
-    <div class="container">
+    <div class="container mt-4">
 
       <div class="row">
         <div class="col-12">
           <div class="progressCard" id="progressCard">
-            <img src="compress.gif" alt="">
+            <!-- Pure CSS press: two plates close on a stack of layers and
+                 squash them. No image file, so nothing here can fail to load. -->
+            <div class="pressLoader" aria-hidden="true">
+              <span class="plate top"></span>
+              <span class="stack"><i></i><i></i><i></i></span>
+              <span class="plate bottom"></span>
+              <span class="spark s1"></span>
+              <span class="spark s2"></span>
+            </div>
             <div class="flex-fill">
               <div class="fileMeta mb-2" id="progressText"></div>
               <div class="bar"><div class="fill" id="progressFill"></div></div>
             </div>
           </div>
 
-          <div class="summary text-center mb-3" id="summary"></div>
+          <div class="summary text-center mb-3 mt-2" id="summary"></div>
         </div>
         <div class="col-12" id="results"></div>
       </div>
     </div>
-  </section>
+ 
 
   <!-- Pixel level comparison viewer -->
   <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Compare original and compressed">
@@ -994,6 +1257,15 @@
         <button class="vbtn" type="button" data-mode="side">Side by side</button>
         <button class="vbtn" type="button" data-mode="slider">Slider</button>
         <button class="vbtn" type="button" data-mode="diff">Difference</button>
+      </div>
+
+      <!-- Re-encodes the image being viewed, so quality can be judged against
+           the pixels rather than guessed at from the list. -->
+      <div class="vgroup vQualityGroup ms-5">
+        <label class="vLabel" for="vQuality">Quality</label>
+        <input type="range" class="rng vrng" id="vQuality" min="5" max="100" step="5" value="60">
+        <span class="qBadge" id="vQualityValue">60</span>
+        <span class="vStatus" id="vStatus"></span>
       </div>
 
       <div class="vgroup">
@@ -1007,16 +1279,23 @@
       </div>
     </div>
 
+    <!-- Decoded sources. Never displayed - every pane paints from these into a
+         canvas, so the browser is never asked to transform a 37 megapixel
+         element on screen. -->
+    <div class="srcImages" aria-hidden="true">
+      <img id="imgA" alt="">
+      <img id="imgB" alt="">
+    </div>
+
     <div class="viewerBody" id="viewerBody">
       <div id="sideWrap">
-        <div class="pane" id="paneA"><span class="paneTag">Original</span><img id="imgA" alt="Original"></div>
-        <div class="pane" id="paneB"><span class="paneTag">Compressed</span><img id="imgB" alt="Compressed"></div>
+        <div class="pane" id="paneA"><span class="paneTag">Original</span><canvas id="canvasA"></canvas></div>
+        <div class="pane" id="paneB"><span class="paneTag">Compressed</span><canvas id="canvasB"></canvas></div>
       </div>
 
       <div class="pane" id="paneSlider" hidden>
         <span class="paneTag">Drag the handle</span>
-        <img id="imgS2" alt="Compressed">
-        <div class="clipLayer" id="clipLayer"><img id="imgS1" alt="Original"></div>
+        <canvas id="canvasS"></canvas>
         <div class="sliderHandle" id="sliderHandle"></div>
       </div>
 
@@ -1028,6 +1307,7 @@
 
     <div class="viewerFoot" id="viewerFoot"></div>
   </div>
+   </section>
 
   <script src="imgmin.js"></script>
   <script>
@@ -1046,6 +1326,7 @@
         qualityValue: $('qualityValue'),
         qualityHint: $('qualityHint'),
         dither: $('dither'),
+        settingActions: $('settingActions'),
         downloadBtn: $('downloadBtn'),
         clearBtn: $('clearBtn'),
         results: $('results'),
@@ -1065,18 +1346,51 @@
         paneDiff: $('paneDiff'),
         imgA: $('imgA'),
         imgB: $('imgB'),
-        imgS1: $('imgS1'),
-        imgS2: $('imgS2'),
-        clipLayer: $('clipLayer'),
+        canvasA: $('canvasA'),
+        canvasB: $('canvasB'),
+        canvasS: $('canvasS'),
         sliderHandle: $('sliderHandle'),
         diffCanvas: $('diffCanvas'),
-        zoomLabel: $('zoomLabel')
+        zoomLabel: $('zoomLabel'),
+        vQuality: $('vQuality'),
+        vQualityValue: $('vQualityValue'),
+        vQualityGroup: document.querySelector('.vQualityGroup'),
+        vStatus: $('vStatus')
       };
 
       // files:   the originals, kept so settings changes can re-run the job
       // urls:    every object URL we created, so none of them leak
       // results: what is currently on screen, used by "Download all"
-      var state = { files: [], urls: [], results: [], run: 0 };
+      var state = {
+        files: [],
+        urls: [],
+        results: [],   // indexed by file position, holes where a file failed
+        cards: [],     // same indexing
+        overrides: [], // per image quality, undefined means use the global one
+        run: 0
+      };
+
+      /* Encoding is synchronous and CPU bound. While the comparison viewer is
+       * open it needs the main thread for panning and zooming, so the batch is
+       * suspended rather than left to fight it for frames - that contention is
+       * what made opening Compare mid-batch feel like a hang. */
+      var gate = { paused: false, waiters: [] };
+
+      function setPaused(paused) {
+        if (gate.paused === paused) return;
+        gate.paused = paused;
+        if (!paused) {
+          var waiting = gate.waiters;
+          gate.waiters = [];
+          waiting.forEach(function (resume) { resume(); });
+        }
+        renderProgress();
+      }
+
+      function waitWhilePaused() {
+        if (!gate.paused) return Promise.resolve();
+        return new Promise(function (resolve) { gate.waiters.push(resolve); });
+      }
 
       /* ---------------------------------------------------------- utils */
 
@@ -1113,22 +1427,93 @@
 
       /* ------------------------------------------------------- progress */
 
+      var progress = { active: false, done: 0, total: 0, name: '' };
+
+      function renderProgress() {
+        if (!progress.active) return;
+        els.progressCard.classList.toggle('paused', gate.paused);
+        els.progressText.textContent = gate.paused
+          ? 'Paused while you compare - ' + progress.done + ' of ' + progress.total +
+            ' done. Close the viewer to continue.'
+          : 'Compressing ' + Math.min(progress.done + 1, progress.total) +
+            ' of ' + progress.total + (progress.name ? ' - ' + progress.name : '');
+        els.progressFill.style.width =
+          Math.round((progress.done / progress.total) * 100) + '%';
+      }
+
       function showProgress(done, total, name) {
+        progress.active = true;
+        progress.done = done;
+        progress.total = total;
+        progress.name = name || '';
         els.progressCard.classList.add('show');
-        els.progressText.textContent =
-          'Compressing ' + Math.min(done + 1, total) + ' of ' + total + (name ? ' - ' + name : '');
-        els.progressFill.style.width = Math.round((done / total) * 100) + '%';
+        renderProgress();
       }
 
       function hideProgress() {
-        els.progressCard.classList.remove('show');
+        progress.active = false;
+        els.progressCard.classList.remove('show', 'paused');
         els.progressFill.style.width = '0';
       }
 
       /* --------------------------------------------------------- render */
 
-      function buildCard(file) {
-        var card = el('div', 'resultCard');
+      // Results are indexed by file position, not appended, so a single image
+      // can be re-encoded in place without disturbing the others.
+      function doneResults() {
+        return state.results.filter(Boolean);
+      }
+
+      function globalQuality() {
+        return parseInt(els.quality.value, 10);
+      }
+
+      // Quality actually used for one image, whether from the global slider or
+      // a per image override.
+      function qualityFor(index) {
+        return typeof state.overrides[index] === 'number'
+          ? state.overrides[index]
+          : globalQuality();
+      }
+
+      // An override equal to the global value is not an override at all, so it
+      // is dropped rather than stored. That keeps "is this image custom?" a
+      // straight comparison instead of a question about history.
+      function setOverride(index, value) {
+        if (value === globalQuality()) delete state.overrides[index];
+        else state.overrides[index] = value;
+      }
+
+      // Single place that keeps the corner tag and the viewer slider showing
+      // the same number.
+      function syncQualityUI(index) {
+        var value = qualityFor(index);
+        // Highlighted only when this image differs from the global setting.
+        var custom = value !== globalQuality();
+        var card = state.cards[index];
+
+        if (card) {
+          // The badge exists only to flag an exception. An image sitting at the
+          // global quality is the norm, so it carries no badge at all.
+          card.tag.hidden = !custom;
+          card.tag.textContent = 'Quality ' + value + '%';
+          card.tag.title = 'Set in Compare, differs from the global quality of '
+            + globalQuality() + '%';
+        }
+
+        if (!els.viewer.hidden && view.entry && view.entry.index === index) {
+          els.vQuality.value = value;
+          els.vQualityValue.textContent = value;
+          els.vQuality.style.setProperty('--pct', ((value - 5) / 95) * 100 + '%');
+        }
+      }
+
+      function buildCard(file, index) {
+        var root = el('div', 'resultCard');
+        // Hidden until this image is given a quality of its own.
+        var tag = el('div', 'cardQualityTag custom', 'Quality ' + els.quality.value + '%');
+        tag.hidden = true;
+        root.appendChild(tag);
         var row = el('div', 'row align-items-center g-3');
 
         var left = el('div', 'col-12 col-sm-6 col-lg-4');
@@ -1138,6 +1523,10 @@
         var originalUrl = trackUrl(URL.createObjectURL(file));
         originalImg.src = originalUrl;
         originalImg.alt = file.name;
+        // Off screen cards are never decoded. With twenty large photos that is
+        // the difference between a responsive page and one that swaps.
+        originalImg.loading = 'lazy';
+        originalImg.decoding = 'async';
         originalWrap.appendChild(originalImg);
         left.appendChild(originalWrap);
         left.appendChild(el('div', 'fileName mt-2', file.name));
@@ -1148,12 +1537,13 @@
         outputWrap.appendChild(el('span', 'paneLabel', 'Compressed'));
         outputWrap.appendChild(el('div', 'skeleton'));
         mid.appendChild(outputWrap);
-        var outputMeta = el('div', 'fileMeta mt-2', 'Compressing...');
+        var outputMeta = el('div', 'fileMeta mt-2', 'Waiting...');
         mid.appendChild(outputMeta);
 
         var right = el('div', 'col-12 col-lg-4 text-lg-center');
         var saving = el('div', 'saving neutral', '-');
         right.appendChild(saving);
+
         var actions = el('div', 'mt-2');
         var compareBtn = el('button', 'btn btn-sm btn-primary me-2', 'Compare');
         compareBtn.type = 'button';
@@ -1165,28 +1555,58 @@
         actions.appendChild(downloadBtnOne);
         right.appendChild(actions);
 
+        // No quality control here on purpose - it lives in the comparison
+        // viewer, where the result of changing it is actually visible.
         row.appendChild(left);
         row.appendChild(mid);
         row.appendChild(right);
-        card.appendChild(row);
-        els.results.appendChild(card);
+        root.appendChild(row);
+        els.results.appendChild(root);
 
-        return {
+        var card = {
+          index: index,
+          tag: tag,
           originalUrl: originalUrl,
           outputWrap: outputWrap,
           outputMeta: outputMeta,
           saving: saving,
           compareBtn: compareBtn,
-          downloadBtnOne: downloadBtnOne
+          downloadBtnOne: downloadBtnOne,
+          entry: null
         };
+
+        // Bound once here rather than in fillCard, which runs again on every
+        // re-encode and would stack duplicate handlers.
+        compareBtn.addEventListener('click', function () {
+          if (card.entry) openViewer(card.entry);
+        });
+        downloadBtnOne.addEventListener('click', function () {
+          if (card.entry) downloadOne(card.entry);
+        });
+
+        state.cards[index] = card;
+        syncQualityUI(index);
+        return card;
+      }
+
+      function setCardBusy(card, message) {
+        card.outputWrap.textContent = '';
+        card.outputWrap.appendChild(el('span', 'paneLabel', 'Compressed'));
+        card.outputWrap.appendChild(el('div', 'skeleton'));
+        card.outputMeta.textContent = message || 'Compressing...';
+        card.compareBtn.disabled = true;
+        card.downloadBtnOne.disabled = true;
       }
 
       function fillCard(card, entry) {
+        card.entry = entry;
         card.outputWrap.textContent = '';
         card.outputWrap.appendChild(el('span', 'paneLabel', 'Compressed'));
         var img = el('img');
         img.src = entry.url;
         img.alt = entry.name;
+        img.loading = 'lazy';
+        img.decoding = 'async';
         card.outputWrap.appendChild(img);
 
         card.outputMeta.textContent =
@@ -1205,11 +1625,10 @@
 
         card.compareBtn.disabled = false;
         card.downloadBtnOne.disabled = false;
-        card.compareBtn.addEventListener('click', function () { openViewer(entry); });
-        card.downloadBtnOne.addEventListener('click', function () { downloadOne(entry); });
       }
 
       function failCard(card, message) {
+        card.entry = null;
         card.outputWrap.textContent = '';
         card.outputWrap.appendChild(el('div', 'fileMeta p-3 text-center', message));
         card.outputMeta.textContent = '';
@@ -1217,13 +1636,72 @@
         card.saving.textContent = 'failed';
       }
 
+      // Re-encode one file at its own quality, leaving every other card alone.
+      // Returns the new entry, or null if it failed or was superseded.
+      async function recompressOne(index) {
+        var card = state.cards[index];
+        var file = state.files[index];
+        if (!card || !file) return null;
+
+        var token = state.run;
+        var viewing = !els.viewer.hidden && view.entry && view.entry.index === index;
+        setCardBusy(card, 'Re-compressing...');
+        if (viewing) setViewerBusy(true);
+
+        // qualityFor, not the raw override: with the override cleared this has
+        // to fall back to the global value, not to the library default.
+        var quality = qualityFor(index);
+        var options = {
+          quality: quality,
+          format: els.format.value,
+          dither: els.dither.checked
+        };
+
+        var entry = null;
+        try {
+          var result = await Imgmin.compress(file, options);
+          if (token !== state.run) { URL.revokeObjectURL(result.url); return null; }
+
+          var previous = state.results[index];
+          trackUrl(result.url);
+          result.index = index;
+          result.quality = quality;
+          result.originalUrl = card.originalUrl;
+          result.originalName = file.name;
+          state.results[index] = result;
+          fillCard(card, result);
+          syncQualityUI(index);
+          entry = result;
+
+          if (previous) {
+            if (viewing) {
+              // Swap the viewer onto the new blob first, then release the old
+              // one - revoking a URL still in use would blank the pane.
+              await refreshViewerEntry(result);
+            } else if (view.entry === previous) {
+              closeViewer();
+            }
+            URL.revokeObjectURL(previous.url);
+          }
+        } catch (err) {
+          if (token !== state.run) return null;
+          failCard(card, err && err.message ? err.message : 'Could not compress this file');
+        }
+
+        if (viewing) setViewerBusy(false);
+        renderSummary();
+        updateActions();
+        return entry;
+      }
+
       function renderSummary() {
-        if (!state.results.length) { els.summary.textContent = ''; return; }
+        var done = doneResults();
+        if (!done.length) { els.summary.textContent = ''; return; }
         var before = 0, after = 0;
-        state.results.forEach(function (r) { before += r.originalSize; after += r.size; });
+        done.forEach(function (r) { before += r.originalSize; after += r.size; });
         var percent = before ? Math.round((1 - after / before) * 100) : 0;
         els.summary.textContent =
-          state.results.length + ' image' + (state.results.length === 1 ? '' : 's') + ': ' +
+          done.length + ' image' + (done.length === 1 ? '' : 's') + ': ' +
           formatBytes(before) + ' to ' + formatBytes(after) +
           ' (' + (percent > 0 ? 'saved ' + percent + '%' : 'no saving') + ')';
       }
@@ -1236,7 +1714,15 @@
         els.results.textContent = '';
         els.summary.textContent = '';
         state.results = [];
-        els.downloadBtn.disabled = true;
+        state.cards = [];
+        updateActions();
+      }
+
+      // The action block is hidden outright with no files loaded, and Download
+      // stays disabled until at least one image has finished.
+      function updateActions() {
+        els.settingActions.hidden = state.files.length === 0;
+        els.downloadBtn.disabled = doneResults().length === 0;
       }
 
       function clearAll() {
@@ -1244,8 +1730,8 @@
         state.files = [];
         // Without this, picking the same file again fires no change event.
         els.upload.value = '';
-        els.clearBtn.disabled = true;
         updateDropInfo();
+        updateActions();
         hideProgress();
       }
 
@@ -1255,7 +1741,10 @@
 
         var token = ++state.run; // any newer run invalidates this one
         clearResults();
-        els.clearBtn.disabled = false;
+        updateActions();
+
+        // A fresh batch drops any per image tweaks from the previous one.
+        state.overrides = [];
 
         var options = {
           quality: parseInt(els.quality.value, 10),
@@ -1263,11 +1752,20 @@
           dither: els.dither.checked
         };
 
+        // Cards are built up front so every file is visible immediately and
+        // Compare can be used on finished ones while the rest queue.
+        for (var b = 0; b < files.length; b++) buildCard(files[b], b);
+
         for (var i = 0; i < files.length; i++) {
           if (token !== state.run) return;
 
+          // Yield the thread entirely while the viewer is open.
+          await waitWhilePaused();
+          if (token !== state.run) return;
+
+          var card = state.cards[i];
           showProgress(i, files.length, files[i].name);
-          var card = buildCard(files[i]);
+          setCardBusy(card, 'Compressing...');
           // Let the browser paint the card and the progress bar before the
           // next (synchronous, CPU heavy) encode blocks the main thread.
           await sleep(0);
@@ -1276,20 +1774,25 @@
             var result = await Imgmin.compress(files[i], options);
             if (token !== state.run) { URL.revokeObjectURL(result.url); return; }
             trackUrl(result.url);
+            result.index = i;
+            result.quality = options.quality;
             result.originalUrl = card.originalUrl;
             result.originalName = files[i].name;
+            state.results[i] = result;
             fillCard(card, result);
-            state.results.push(result);
           } catch (err) {
             if (token !== state.run) return;
             failCard(card, err && err.message ? err.message : 'Could not compress this file');
           }
 
+          progress.done = i + 1;
+          renderProgress();
           renderSummary();
+          updateActions();
         }
 
         hideProgress();
-        els.downloadBtn.disabled = state.results.length === 0;
+        updateActions();
       }
 
       /* -------------------------------------------------------- actions */
@@ -1304,11 +1807,13 @@
       }
 
       async function downloadAll() {
+        // doneResults() skips the holes a failed image leaves behind.
+        var ready = doneResults();
         els.downloadBtn.disabled = true;
-        for (var i = 0; i < state.results.length; i++) {
-          downloadOne(state.results[i]);
+        for (var i = 0; i < ready.length; i++) {
+          downloadOne(ready[i]);
           // Browsers throttle or block rapid consecutive downloads.
-          if (i < state.results.length - 1) await sleep(250);
+          if (i < ready.length - 1) await sleep(250);
         }
         els.downloadBtn.disabled = false;
       }
@@ -1329,26 +1834,105 @@
       }
 
       function allImages() {
-        return [els.imgA, els.imgB, els.imgS1, els.imgS2];
+        return [els.imgA, els.imgB];
+      }
+
+      /* Painting -------------------------------------------------------- *
+       * Every pane is a canvas the size of its own box. On each frame we work
+       * out which rectangle of the source image is currently visible and blit
+       * just that, scaled, into the canvas. The work per frame is therefore
+       * proportional to the pane, not to the image, so a 9955 x 3764 photo
+       * pans exactly as smoothly as a thumbnail.                            */
+
+      // Copies the visible slice of one image into ctx. Returns false when
+      // the image is entirely off screen.
+      function drawSlice(ctx, img, dpr, paneW, paneH) {
+        if (!img || !img.naturalWidth) return false;
+
+        var left = Math.max(0, view.tx);
+        var top = Math.max(0, view.ty);
+        var right = Math.min(paneW, view.tx + view.w * view.scale);
+        var bottom = Math.min(paneH, view.ty + view.h * view.scale);
+        if (right <= left || bottom <= top) return false;
+
+        var sx = (left - view.tx) / view.scale;
+        var sy = (top - view.ty) / view.scale;
+        var sw = (right - left) / view.scale;
+        var sh = (bottom - top) / view.scale;
+
+        // Rounding can push the source rect a hair past the edge, which throws.
+        sw = Math.min(sw, view.w - sx);
+        sh = Math.min(sh, view.h - sy);
+        if (sw <= 0 || sh <= 0) return false;
+
+        ctx.drawImage(
+          img, sx, sy, sw, sh,
+          left * dpr, top * dpr, (right - left) * dpr, (bottom - top) * dpr
+        );
+        return true;
+      }
+
+      function paint(canvas, draw) {
+        var dpr = window.devicePixelRatio || 1;
+        var w = canvas.clientWidth, h = canvas.clientHeight;
+        if (!w || !h) return;
+
+        var cw = Math.round(w * dpr), ch = Math.round(h * dpr);
+        if (canvas.width !== cw) canvas.width = cw;
+        if (canvas.height !== ch) canvas.height = ch;
+
+        var ctx = canvas.getContext('2d');
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, cw, ch);
+        // Past 1:1 the browser has to invent pixels. Nearest neighbour keeps
+        // the real pixel grid visible so compression artefacts stay honest.
+        ctx.imageSmoothingEnabled = view.scale < 1.5;
+        ctx.imageSmoothingQuality = 'high';
+        draw(ctx, w, h, dpr);
+      }
+
+      function renderPanes() {
+        if (!view.ready) return;
+
+        if (view.mode === 'side') {
+          paint(els.canvasA, function (ctx, w, h, dpr) { drawSlice(ctx, els.imgA, dpr, w, h); });
+          paint(els.canvasB, function (ctx, w, h, dpr) { drawSlice(ctx, els.imgB, dpr, w, h); });
+          return;
+        }
+
+        if (view.mode === 'slider') {
+          paint(els.canvasS, function (ctx, w, h, dpr) {
+            drawSlice(ctx, els.imgB, dpr, w, h);
+            // Original on top, clipped to the handle position. Both come from
+            // the same transform, so they line up exactly.
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, 0, view.split * w * dpr, h * dpr);
+            ctx.clip();
+            drawSlice(ctx, els.imgA, dpr, w, h);
+            ctx.restore();
+          });
+          return;
+        }
+
+        paint(els.diffCanvas, function (ctx, w, h, dpr) {
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, w * dpr, h * dpr);
+          drawSlice(ctx, els.imgA, dpr, w, h);
+          // 'difference' leaves black wherever the two agree, so anything
+          // visible is exactly what compression changed.
+          ctx.globalCompositeOperation = 'difference';
+          drawSlice(ctx, els.imgB, dpr, w, h);
+          ctx.globalCompositeOperation = 'source-over';
+        });
       }
 
       function applyView() {
-        var t = 'translate(' + view.tx + 'px,' + view.ty + 'px) scale(' + view.scale + ')';
-        allImages().forEach(function (img) { img.style.transform = t; });
-
-        // Past 1:1 the browser must invent pixels. Nearest neighbour keeps the
-        // real pixel grid visible so compression artefacts are honest.
-        var pixel = view.scale >= 1.5;
-        [els.paneA, els.paneB, els.paneSlider].forEach(function (p) {
-          p.classList.toggle('pixelated', pixel);
-        });
-        els.diffCanvas.classList.toggle('pixelated', pixel);
-
         els.zoomLabel.textContent = Math.round(view.scale * 100) + '%';
         $('zoomOut').disabled = view.scale <= view.fit * 1.001;
         $('zoomIn').disabled = view.scale >= 39.99;
         updateSplit();
-        if (view.mode === 'diff') renderDiff();
+        renderPanes();
       }
 
       var framePending = false;
@@ -1362,7 +1946,7 @@
       }
 
       function updateSplit() {
-        els.clipLayer.style.width = (view.split * 100) + '%';
+        // The clip itself happens while painting; this only moves the handle.
         els.sliderHandle.style.left = (view.split * 100) + '%';
       }
 
@@ -1396,33 +1980,6 @@
         scheduleView();
       }
 
-      function renderDiff() {
-        var canvas = els.diffCanvas;
-        var pane = els.paneDiff;
-        var dpr = window.devicePixelRatio || 1;
-        var w = pane.clientWidth, h = pane.clientHeight;
-        if (!w || !h || !view.ready) return;
-
-        if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
-          canvas.width = Math.round(w * dpr);
-          canvas.height = Math.round(h * dpr);
-        }
-        var ctx = canvas.getContext('2d');
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.imageSmoothingEnabled = view.scale < 1.5;
-        ctx.setTransform(view.scale * dpr, 0, 0, view.scale * dpr, view.tx * dpr, view.ty * dpr);
-        try {
-          ctx.drawImage(els.imgA, 0, 0);
-          // 'difference' leaves black wherever the two are identical, so any
-          // visible detail is exactly what compression changed.
-          ctx.globalCompositeOperation = 'difference';
-          ctx.drawImage(els.imgB, 0, 0);
-        } catch (e) { /* images not ready yet */ }
-        ctx.globalCompositeOperation = 'source-over';
-      }
-
       function setMode(mode) {
         var pane = activePane();
         var oldW = pane.clientWidth, oldH = pane.clientHeight;
@@ -1449,11 +2006,7 @@
         applyView();
       }
 
-      function openViewer(entry) {
-        view.entry = entry;
-        view.ready = false;
-        view.split = 0.5;
-
+      function renderViewerMeta(entry) {
         els.viewerTitle.textContent = entry.originalName || entry.name;
         var savedPercent = entry.skipped
           ? 'original kept'
@@ -1471,15 +2024,47 @@
           span.appendChild(document.createTextNode(pair[1]));
           els.viewerFoot.appendChild(span);
         });
+      }
 
-        els.imgA.src = entry.originalUrl;
-        els.imgS1.src = entry.originalUrl;
+      function setViewerBusy(busy) {
+        els.vQualityGroup.classList.toggle('busy', busy);
+        els.vStatus.textContent = busy ? 'Re-compressing...' : '';
+      }
+
+      // Swaps the compressed pane onto a newly encoded blob without disturbing
+      // the current zoom or pan - the whole point of tuning from in here.
+      function refreshViewerEntry(entry) {
+        if (els.viewer.hidden) return Promise.resolve();
+        view.entry = entry;
+        renderViewerMeta(entry);
         els.imgB.src = entry.url;
-        els.imgS2.src = entry.url;
+        var decoded = els.imgB.decode
+          ? els.imgB.decode().catch(function () {})
+          : Promise.resolve();
+        return decoded.then(function () {
+          if (els.viewer.hidden) return;
+          renderPanes();
+        });
+      }
+
+      function openViewer(entry) {
+        view.entry = entry;
+        view.ready = false;
+        view.split = 0.5;
+
+        renderViewerMeta(entry);
+        setViewerBusy(false);
+
+        // One decode of each, shared by all three modes.
+        els.imgA.src = entry.originalUrl;
+        els.imgB.src = entry.url;
 
         els.viewer.hidden = false;
         document.body.style.overflow = 'hidden';
+        // Suspend the batch: the viewer needs the main thread to stay smooth.
+        setPaused(true);
         setMode(view.mode);
+        if (typeof entry.index === 'number') syncQualityUI(entry.index);
 
         Promise.all(allImages().map(function (img) {
           return img.decode ? img.decode().catch(function () {}) : Promise.resolve();
@@ -1499,6 +2084,8 @@
         view.entry = null;
         // Drop the decoded copies - these are full resolution and can be huge.
         allImages().forEach(function (img) { img.removeAttribute('src'); });
+        // Let the queue carry on where it left off.
+        setPaused(false);
       }
 
       /* -------------------------------------------------- viewer events */
@@ -1574,6 +2161,8 @@
           var rect = els.paneSlider.getBoundingClientRect();
           view.split = clamp((event.clientX - rect.left) / rect.width, 0, 1);
           updateSplit();
+          // The wipe is painted, so moving the handle needs a repaint.
+          scheduleView();
           event.stopPropagation();
         });
         els.sliderHandle.addEventListener('pointerup', function (event) {
@@ -1590,6 +2179,31 @@
         btn.addEventListener('click', function () { setMode(btn.getAttribute('data-mode')); });
       });
 
+      // Quality slider in the viewer toolbar. Debounced, because dragging fires
+      // continuously and each encode is expensive.
+      var vQualityTimer = null;
+      els.vQuality.addEventListener('input', function () {
+        if (!view.entry || typeof view.entry.index !== 'number') return;
+        var index = view.entry.index;
+        var value = parseInt(els.vQuality.value, 10);
+
+        setOverride(index, value);
+        syncQualityUI(index);
+
+        // The picture on screen was encoded at entry.quality. Landing back on
+        // that number - whether by dragging back or by returning to the global
+        // default - means there is nothing to redo.
+        var current = state.results[index];
+        clearTimeout(vQualityTimer);
+        if (current && current.quality === value) {
+          els.vStatus.textContent = '';
+          return;
+        }
+
+        els.vStatus.textContent = 'Re-compressing...';
+        vQualityTimer = setTimeout(function () { recompressOne(index); }, 450);
+      });
+
       $('zoomIn').addEventListener('click', function () { zoomTo(view.scale * 1.5); });
       $('zoomOut').addEventListener('click', function () { zoomTo(view.scale / 1.5); });
       $('zoomFit').addEventListener('click', fitToPane);
@@ -1599,6 +2213,9 @@
 
       document.addEventListener('keydown', function (event) {
         if (els.viewer.hidden) return;
+        // Arrow keys belong to the quality slider while it has focus, not to
+        // panning.
+        if (event.target === els.vQuality && event.key !== 'Escape') return;
         var step = 60;
         switch (event.key) {
           case 'Escape': closeViewer(); break;
@@ -1652,6 +2269,7 @@
         if (!files.length) return;
         state.files = files;
         updateDropInfo();
+        updateActions();
         run();
       }
 
@@ -1742,6 +2360,7 @@
 
       updateQualityHint();
       updateDropInfo();
+      updateActions();
       setMode('side');
       if (!Imgmin.supportsWebP()) {
         els.format.querySelector('option[value="webp"]').disabled = true;

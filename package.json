@@ -1,0 +1,13 @@
+{
+  "name": "rj-image-compressor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Client side image compressor - JPEG/WebP via canvas, PNG via a built in quantizer and PNG8 encoder",
+  "scripts": {
+    "build": "node build.js",
+    "build:max": "node build.js --max"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.1"
+  }
+}
