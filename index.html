@@ -1,0 +1,1753 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image Compressor</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap"
+    rel="stylesheet">
+
+  <!-- Bootstrap CSS -->
+  <link href="bootstrap.css" rel="stylesheet">
+
+  <!-- Style css -->
+  <link href="style.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #1c2333;
+      --muted: #7b869b;
+      --line: #e7e9ef;
+      --accent: #2563eb;
+      --good: #12a150;
+    }
+
+    body {
+      background: #eef3fb;
+      color: var(--ink);
+    }
+
+    .imgCompresser {
+      position: relative;
+      min-height: 100vh;
+    }
+
+    .imgCompresser .container {
+      max-width: 1100px;
+    }
+
+    .imgCompresser h1 {
+      font-family: 'Rubik', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .imgCompresser .btn {
+      padding: 8px 20px;
+      border-radius: 30px;
+    }
+
+    .imgCompresser .form-control,
+    .imgCompresser .form-select {
+      border-color: var(--line);
+      padding: 12px 16px;
+      color: #566076;
+    }
+
+    .controls {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 2px 14px rgba(28, 35, 51, .05);
+    }
+
+    .controls label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #c07800;
+      min-height: 16px;
+    }
+
+    /* ------------------------------------------------------------ hero */
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 48px 0 34px;
+    }
+
+    /* Slow drifting colour fields behind the header. Blurred and behind
+       everything, so they never interfere with reading or pointer events. */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: .5;
+      pointer-events: none;
+    }
+
+    .orb1 {
+      width: 360px; height: 360px;
+      background: #7db8ff;
+      top: -150px; left: -80px;
+      animation: drift1 19s ease-in-out infinite;
+    }
+
+    .orb2 {
+      width: 300px; height: 300px;
+      background: #c4b5fd;
+      top: -90px; right: -60px;
+      animation: drift2 23s ease-in-out infinite;
+    }
+
+    .orb3 {
+      width: 260px; height: 260px;
+      background: #7ee7d0;
+      bottom: -160px; left: 42%;
+      animation: drift3 27s ease-in-out infinite;
+    }
+
+    @keyframes drift1 { 50% { transform: translate(70px, 50px) scale(1.18); } }
+    @keyframes drift2 { 50% { transform: translate(-60px, 60px) scale(1.12); } }
+    @keyframes drift3 { 50% { transform: translate(50px, -50px) scale(1.2); } }
+
+    .heroTitle {
+      font-family: 'Rubik', sans-serif;
+      font-size: 46px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      margin: 0;
+      background: linear-gradient(100deg, #1c2333 18%, #2563eb 40%, #7c3aed 56%, #1c2333 78%);
+      background-size: 240% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: sheen 9s linear infinite;
+    }
+
+    @keyframes sheen { to { background-position: -240% 0; } }
+
+    .heroSub {
+      color: var(--muted);
+      margin: 10px 0 0;
+      font-size: 15px;
+    }
+
+    .badgeRow {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #48546b;
+      background: rgba(255, 255, 255, .72);
+      border: 1px solid rgba(28, 35, 51, .07);
+      border-radius: 30px;
+      padding: 5px 13px;
+      backdrop-filter: blur(6px);
+    }
+
+    .pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--good);
+      animation: blink 2.4s ease-in-out infinite;
+    }
+
+    @keyframes blink { 50% { opacity: .25; } }
+
+    /* -------------------------------------------------------- dropzone */
+
+    @property --angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    .dropZone {
+      position: relative;
+      margin-top: 30px;
+      border-radius: 22px;
+      border: 2px dashed #c6d3ea;
+      background: rgba(255, 255, 255, .74);
+      backdrop-filter: blur(8px);
+      padding: 34px 20px 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease,
+                  background .18s ease, box-shadow .18s ease;
+    }
+
+    .dropZone:hover {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 12px 34px rgba(37, 99, 235, .13);
+    }
+
+    /* Rotating gradient ring while a file is hovering over the page. */
+    .dropZone::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 24px;
+      padding: 2px;
+      background: conic-gradient(from var(--angle), #2563eb, #7c3aed, #06b6d4, #2563eb);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity .2s ease;
+      pointer-events: none;
+    }
+
+    .dropZone.dragging {
+      transform: scale(1.012);
+      border-color: transparent;
+      background: #fff;
+      box-shadow: 0 18px 44px rgba(37, 99, 235, .2);
+    }
+
+    .dropZone.dragging::before {
+      opacity: 1;
+      animation: spinRing 2.6s linear infinite;
+    }
+
+    @keyframes spinRing { to { --angle: 360deg; } }
+
+    /* The real input stays in the DOM for the picker and for form semantics,
+       it is only hidden from view. */
+    .dropZone input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .dropIcon {
+      position: relative;
+      width: 92px;
+      height: 92px;
+      margin: 0 auto 12px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+    }
+
+    .dropIcon .pulse {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid rgba(37, 99, 235, .32);
+      animation: pulseOut 2.8s ease-out infinite;
+    }
+
+    .dropIcon .pulse.delay { animation-delay: 1.4s; }
+
+    @keyframes pulseOut {
+      0% { transform: scale(.52); opacity: .9; }
+      100% { transform: scale(1.25); opacity: 0; }
+    }
+
+    .dropIcon svg {
+      width: 56px;
+      height: 56px;
+      position: relative;
+    }
+
+    .dropIcon svg path,
+    .dropIcon svg rect {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .dropIcon .frame { opacity: .28; }
+    .dropIcon .arrowTop { animation: squeezeDown 2.4s ease-in-out infinite; }
+    .dropIcon .arrowBottom { animation: squeezeUp 2.4s ease-in-out infinite; }
+    .dropIcon .squeeze { animation: squeezeLine 2.4s ease-in-out infinite; }
+
+    @keyframes squeezeDown { 50% { transform: translateY(5px); } }
+    @keyframes squeezeUp { 50% { transform: translateY(-5px); } }
+    @keyframes squeezeLine {
+      0%, 100% { opacity: .2; transform: scaleX(.78); }
+      50% { opacity: .75; transform: scaleX(1); }
+    }
+
+    .dropText strong {
+      display: block;
+      font-size: 19px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .browseLink {
+      color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .chipRow {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .chip {
+      background: #eef3ff;
+      color: #2352c8;
+      border: 1px solid #d9e4ff;
+      border-radius: 30px;
+      padding: 4px 13px;
+      font-size: 12px;
+      font-weight: 500;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      animation: chipIn .28s ease both;
+    }
+
+    @keyframes chipIn {
+      from { opacity: 0; transform: translateY(6px); }
+    }
+
+    /* ---------------------------------------------------- settings bar */
+
+    .settingsBar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      align-items: flex-end;
+      background: rgba(255, 255, 255, .85);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 22px;
+      margin-top: 16px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 18px rgba(28, 35, 51, .05);
+    }
+
+    .setting { flex: 1 1 170px; }
+
+    /* Small caps captions so the label never competes with its value. */
+    .setting > label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: #9aa4b8;
+      margin-bottom: 9px;
+    }
+
+    .settingWide { flex: 2 1 240px; position: relative; }
+    .settingCheck { flex: 1 1 190px; }
+
+    .settingActions {
+      flex: 0 0 auto;
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .qBadge {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 20px;
+      padding: 2px 9px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Every control settles on the same 44px height so the row reads as one
+       band instead of four differently sized widgets. */
+    .settingsBar .form-select {
+      appearance: none;
+      -webkit-appearance: none;
+      height: 44px;
+      padding: 0 38px 0 14px;
+      border-radius: 12px;
+      border: 1px solid #dde3ee;
+      background-color: #fff;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7691' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .settingsBar .form-select:hover { border-color: #c3cee0; }
+
+    .settingsBar .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .16);
+      outline: none;
+    }
+
+    /* Range: filled portion is painted by a wide box-shadow on the thumb,
+       clipped by the track. Keeps it pure CSS with no script involved. */
+    .settingsBar .form-range {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 44px;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .settingsBar .form-range:focus { outline: none; box-shadow: none; }
+
+    /* Keyboard users still need to see where focus is. */
+    .settingsBar .form-range:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+
+    .settingsBar .form-range::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 6px;
+      background: #e4e9f3;
+      overflow: hidden;
+    }
+
+    .settingsBar .form-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      margin-top: -6px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--accent);
+      box-shadow: -400px 0 0 392px var(--accent);
+      transition: transform .12s ease;
+    }
+
+    .settingsBar .form-range:active::-webkit-slider-thumb { transform: scale(1.15); }
+
+    .settingsBar .form-range::-moz-range-track {
+      height: 6px;
+      border-radius: 6px;
+      background: #e4e9f3;
+    }
+
+    .settingsBar .form-range::-moz-range-progress {
+      height: 6px;
+      border-radius: 6px;
+      background: var(--accent);
+    }
+
+    .settingsBar .form-range::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border: 3px solid var(--accent);
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    /* Hint is taken out of flow so the row does not jump when it appears. */
+    .settingWide .hint {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: -2px;
+      min-height: 0;
+      white-space: nowrap;
+    }
+
+    .settingCheck .form-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      min-height: 44px;
+      padding-top: 4px;
+    }
+
+    .settingCheck .form-check-input {
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+      border-color: #cbd4e3;
+      cursor: pointer;
+      transition: box-shadow .15s ease;
+    }
+
+    .settingCheck .form-check-input:checked {
+      background-color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .settingCheck .form-check-input:focus {
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .16);
+      border-color: var(--accent);
+    }
+
+    .settingCheck .form-check-label {
+      cursor: pointer;
+      line-height: 1.35;
+      color: #56617a;
+    }
+
+    /* Download all is the main action, so it stops looking like a twin of
+       Clear once it becomes usable. */
+    .settingsBar .btn {
+      height: 44px;
+      font-size: 14px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    #downloadBtn:not(:disabled) {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .28);
+    }
+
+    #downloadBtn:not(:disabled):hover {
+      background: #1d4fd8;
+      border-color: #1d4fd8;
+    }
+
+    .settingsBar .btn:disabled {
+      opacity: .45;
+      box-shadow: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orb, .heroTitle, .pill .dot, .dropIcon .pulse, .dropIcon svg path,
+      .chip, .skeleton, .dropZone.dragging::before {
+        animation: none !important;
+      }
+      .dropZone { transition: none; }
+    }
+
+    /* Checkerboard, so transparency is visible instead of guessed at. */
+    .checker {
+      background-color: #fff;
+      background-image:
+        linear-gradient(45deg, #eceef1 25%, transparent 25%, transparent 75%, #eceef1 75%),
+        linear-gradient(45deg, #eceef1 25%, transparent 25%, transparent 75%, #eceef1 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 8px 8px;
+    }
+
+    .imgWrapper {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+      position: relative;
+    }
+
+    .imgWrapper img {
+      max-height: 160px;
+      max-width: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .paneLabel {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      background: rgba(28, 35, 51, .72);
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    /* Shimmer placeholder while a file is being encoded. */
+    .skeleton {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(100deg, #f2f4f8 30%, #e4e8f0 50%, #f2f4f8 70%);
+      background-size: 220% 100%;
+      animation: shimmer 1.1s linear infinite;
+    }
+
+    @keyframes shimmer {
+      to { background-position: -120% 0; }
+    }
+
+    .resultCard {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 14px rgba(28, 35, 51, .05);
+    }
+
+    .fileName {
+      font-size: 14px;
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .fileMeta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .saving {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--good);
+      line-height: 1.1;
+    }
+
+    .saving.neutral { color: var(--muted); font-size: 18px; }
+    .saving.error { color: #d33a3a; font-size: 18px; }
+
+    .summary {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* Inline, non blocking progress. The page stays usable while encoding. */
+    .progressCard {
+      display: none;
+      align-items: center;
+      gap: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+    }
+
+    .progressCard.show { display: flex; }
+    .progressCard img { width: 64px; height: auto; }
+    .progressCard .bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 8px;
+      background: #eaeef6;
+      overflow: hidden;
+    }
+
+    .progressCard .fill {
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+      border-radius: 8px;
+      transition: width .25s ease;
+    }
+
+    /* ---------------------------------------------------------- viewer */
+
+    .viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 1080;
+      background: #0e1117;
+      display: flex;
+      flex-direction: column;
+      color: #e6e9ef;
+    }
+
+    .viewer[hidden] { display: none; }
+
+    .viewerBar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #232936;
+      background: #141922;
+    }
+
+    .viewerTitle {
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: auto;
+      word-break: break-all;
+    }
+
+    .viewer .vbtn {
+      background: #1e2530;
+      border: 1px solid #2c3542;
+      color: #d7dce6;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      line-height: 1.2;
+      cursor: pointer;
+    }
+
+    .viewer .vbtn:hover { background: #273040; }
+
+    .viewer .vbtn:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+      background: #1e2530;
+    }
+
+    .viewer .vbtn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .vgroup { display: flex; gap: 4px; align-items: center; }
+
+    #zoomLabel {
+      min-width: 62px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+    }
+
+    .viewerBody {
+      flex: 1;
+      display: flex;
+      gap: 2px;
+      min-height: 0;
+      background: #232936;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .pane {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+      background-color: #0e1117;
+      background-image:
+        linear-gradient(45deg, #1a202b 25%, transparent 25%, transparent 75%, #1a202b 75%),
+        linear-gradient(45deg, #1a202b 25%, transparent 25%, transparent 75%, #1a202b 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 10px 10px;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .pane.dragging { cursor: grabbing; }
+    .pane[hidden] { display: none; }
+
+    /* transform-origin 0 0 keeps the pan/zoom maths simple and identical
+       across every pane, which is what keeps the two views in sync. */
+    .pane img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      max-width: none;
+      max-height: none;
+      /* The pane owns every pointer event. Without this the browser starts its
+         own native image drag (complete with ghost thumbnail) the moment you
+         press on the picture, which fights the pan and looks like glitching.
+         No will-change here on purpose: promoting a 37 MP image to its own
+         composited layer forces a full raster and tears while panning. */
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .pane.pixelated img,
+    canvas.pixelated { image-rendering: pixelated; }
+
+    .paneTag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 3;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      background: rgba(0, 0, 0, .62);
+      padding: 4px 10px;
+      border-radius: 20px;
+      pointer-events: none;
+    }
+
+    #sideWrap { display: flex; flex: 1; gap: 2px; min-width: 0; }
+    #sideWrap[hidden] { display: none; }
+
+    .clipLayer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      width: 50%;
+      z-index: 2;
+    }
+
+    .sliderHandle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #fff;
+      z-index: 4;
+      cursor: ew-resize;
+      transform: translateX(-1px);
+    }
+
+    .sliderHandle::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 34px;
+      height: 34px;
+      margin: -17px 0 0 -17px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, .5);
+    }
+
+    #diffCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      filter: brightness(6);
+    }
+
+    .viewerFoot {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: center;
+      padding: 9px 14px;
+      border-top: 1px solid #232936;
+      background: #141922;
+      font-size: 13px;
+      color: #9aa4b5;
+    }
+
+    .viewerFoot strong { color: #e6e9ef; }
+
+    @media(max-width:767px) {
+      body { padding-top: 0; }
+      .imgCompresser h1 { font-size: 30px; }
+      #sideWrap { flex-direction: column; }
+      .viewerTitle { width: 100%; margin-right: 0; }
+    }
+  </style>
+</head>
+
+<body>
+  <section class="imgCompresser">
+    <div class="hero">
+      <span class="orb orb1"></span>
+      <span class="orb orb2"></span>
+      <span class="orb orb3"></span>
+
+      <div class="container position-relative">
+        <div class="row">
+          <div class="col-12 text-center">
+            <h1 class="heroTitle">Image Compressor</h1>
+            <p class="heroSub">Squeeze images down without guessing what it cost you.</p>
+            <div class="badgeRow">
+              <span class="pill"><i class="dot"></i> Runs entirely offline</span>
+              <span class="pill">JPEG &middot; PNG &middot; WebP</span>
+              <span class="pill">Pixel level compare</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-12">
+            <!-- The whole card is the drop target. The real <input> stays in the
+                 DOM (visually hidden) so the file picker and form semantics are
+                 untouched - the label below opens it. -->
+            <div class="dropZone" id="dropZone">
+              <input id="upload" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+
+              <div class="dropInner">
+                <div class="dropIcon" aria-hidden="true">
+                  <span class="pulse"></span>
+                  <span class="pulse delay"></span>
+                  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.4"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect class="frame" x="12" y="12" width="40" height="40" rx="10" />
+                    <path class="arrowTop" d="M24 27l8-8 8 8" />
+                    <path class="arrowBottom" d="M40 37l-8 8-8-8" />
+                    <path class="squeeze" d="M20 32h24" />
+                  </svg>
+                </div>
+
+                <div class="dropText">
+                  <strong id="dropTitle">Drop images here</strong>
+                  <span class="fileMeta">
+                    or <label for="upload" class="browseLink">browse your files</label>
+                    &middot; paste with Ctrl&nbsp;+&nbsp;V
+                  </span>
+                </div>
+
+                <div class="chipRow" id="dropInfo"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-12">
+            <div class="settingsBar">
+              <div class="setting">
+                <label for="format">Output format</label>
+                <select class="form-select" id="format">
+                  <option value="auto" selected>Keep original format</option>
+                  <option value="webp">WebP (smallest)</option>
+                  <option value="jpeg">JPEG</option>
+                  <option value="png">PNG</option>
+                </select>
+              </div>
+
+              <div class="setting settingWide">
+                <label for="quality">Quality <span class="qBadge" id="qualityValue">60</span></label>
+                <input type="range" class="form-range" id="quality" min="5" max="100" step="5" value="60">
+                <div class="hint" id="qualityHint"></div>
+              </div>
+
+              <div class="setting settingCheck">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="dither">
+                  <label class="form-check-label fileMeta" for="dither">
+                    Dither PNG
+                    <span class="fileMeta d-block">smoother gradients, larger files</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="setting settingActions">
+                <button class="btn btn-outline-secondary" id="downloadBtn" type="button" disabled>
+                  Download all
+                </button>
+                <button class="btn btn-outline-secondary" id="clearBtn" type="button" disabled>
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="row">
+        <div class="col-12">
+          <div class="progressCard" id="progressCard">
+            <img src="compress.gif" alt="">
+            <div class="flex-fill">
+              <div class="fileMeta mb-2" id="progressText"></div>
+              <div class="bar"><div class="fill" id="progressFill"></div></div>
+            </div>
+          </div>
+
+          <div class="summary text-center mb-3" id="summary"></div>
+        </div>
+        <div class="col-12" id="results"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pixel level comparison viewer -->
+  <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Compare original and compressed">
+    <div class="viewerBar">
+      <div class="viewerTitle" id="viewerTitle"></div>
+
+      <div class="vgroup" role="group" aria-label="Comparison mode">
+        <button class="vbtn" type="button" data-mode="side">Side by side</button>
+        <button class="vbtn" type="button" data-mode="slider">Slider</button>
+        <button class="vbtn" type="button" data-mode="diff">Difference</button>
+      </div>
+
+      <div class="vgroup">
+        <button class="vbtn" type="button" id="zoomOut" aria-label="Zoom out">&minus;</button>
+        <span id="zoomLabel">100%</span>
+        <button class="vbtn" type="button" id="zoomIn" aria-label="Zoom in">+</button>
+        <button class="vbtn" type="button" id="zoomFit">Fit</button>
+        <button class="vbtn" type="button" id="zoomActual">1:1</button>
+        <button class="vbtn" type="button" id="zoom400">400%</button>
+        <button class="vbtn" type="button" id="viewerClose" aria-label="Close">&times;</button>
+      </div>
+    </div>
+
+    <div class="viewerBody" id="viewerBody">
+      <div id="sideWrap">
+        <div class="pane" id="paneA"><span class="paneTag">Original</span><img id="imgA" alt="Original"></div>
+        <div class="pane" id="paneB"><span class="paneTag">Compressed</span><img id="imgB" alt="Compressed"></div>
+      </div>
+
+      <div class="pane" id="paneSlider" hidden>
+        <span class="paneTag">Drag the handle</span>
+        <img id="imgS2" alt="Compressed">
+        <div class="clipLayer" id="clipLayer"><img id="imgS1" alt="Original"></div>
+        <div class="sliderHandle" id="sliderHandle"></div>
+      </div>
+
+      <div class="pane" id="paneDiff" hidden>
+        <span class="paneTag">Difference &times;6 - black means identical</span>
+        <canvas id="diffCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="viewerFoot" id="viewerFoot"></div>
+  </div>
+
+  <script src="imgmin.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      function $(id) { return document.getElementById(id); }
+
+      var els = {
+        upload: $('upload'),
+        dropZone: $('dropZone'),
+        dropTitle: $('dropTitle'),
+        dropInfo: $('dropInfo'),
+        format: $('format'),
+        quality: $('quality'),
+        qualityValue: $('qualityValue'),
+        qualityHint: $('qualityHint'),
+        dither: $('dither'),
+        downloadBtn: $('downloadBtn'),
+        clearBtn: $('clearBtn'),
+        results: $('results'),
+        summary: $('summary'),
+        progressCard: $('progressCard'),
+        progressText: $('progressText'),
+        progressFill: $('progressFill'),
+
+        viewer: $('viewer'),
+        viewerTitle: $('viewerTitle'),
+        viewerBody: $('viewerBody'),
+        viewerFoot: $('viewerFoot'),
+        sideWrap: $('sideWrap'),
+        paneA: $('paneA'),
+        paneB: $('paneB'),
+        paneSlider: $('paneSlider'),
+        paneDiff: $('paneDiff'),
+        imgA: $('imgA'),
+        imgB: $('imgB'),
+        imgS1: $('imgS1'),
+        imgS2: $('imgS2'),
+        clipLayer: $('clipLayer'),
+        sliderHandle: $('sliderHandle'),
+        diffCanvas: $('diffCanvas'),
+        zoomLabel: $('zoomLabel')
+      };
+
+      // files:   the originals, kept so settings changes can re-run the job
+      // urls:    every object URL we created, so none of them leak
+      // results: what is currently on screen, used by "Download all"
+      var state = { files: [], urls: [], results: [], run: 0 };
+
+      /* ---------------------------------------------------------- utils */
+
+      function formatBytes(bytes, decimals) {
+        if (!bytes) return '0 Bytes';
+        var k = 1024;
+        var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        var i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+        var dm = decimals === undefined ? 2 : decimals;
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+      }
+
+      function trackUrl(url) { state.urls.push(url); return url; }
+
+      function releaseUrls() {
+        state.urls.forEach(URL.revokeObjectURL);
+        state.urls = [];
+      }
+
+      function el(tag, className, text) {
+        var node = document.createElement(tag);
+        if (className) node.className = className;
+        // textContent, never innerHTML - a file named  a"><img onerror=...>
+        // would otherwise be parsed as markup.
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+
+      function sleep(ms) {
+        return new Promise(function (resolve) { setTimeout(resolve, ms); });
+      }
+
+      function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+      /* ------------------------------------------------------- progress */
+
+      function showProgress(done, total, name) {
+        els.progressCard.classList.add('show');
+        els.progressText.textContent =
+          'Compressing ' + Math.min(done + 1, total) + ' of ' + total + (name ? ' - ' + name : '');
+        els.progressFill.style.width = Math.round((done / total) * 100) + '%';
+      }
+
+      function hideProgress() {
+        els.progressCard.classList.remove('show');
+        els.progressFill.style.width = '0';
+      }
+
+      /* --------------------------------------------------------- render */
+
+      function buildCard(file) {
+        var card = el('div', 'resultCard');
+        var row = el('div', 'row align-items-center g-3');
+
+        var left = el('div', 'col-12 col-sm-6 col-lg-4');
+        var originalWrap = el('div', 'imgWrapper checker');
+        originalWrap.appendChild(el('span', 'paneLabel', 'Original'));
+        var originalImg = el('img');
+        var originalUrl = trackUrl(URL.createObjectURL(file));
+        originalImg.src = originalUrl;
+        originalImg.alt = file.name;
+        originalWrap.appendChild(originalImg);
+        left.appendChild(originalWrap);
+        left.appendChild(el('div', 'fileName mt-2', file.name));
+        left.appendChild(el('div', 'fileMeta', formatBytes(file.size)));
+
+        var mid = el('div', 'col-12 col-sm-6 col-lg-4');
+        var outputWrap = el('div', 'imgWrapper checker');
+        outputWrap.appendChild(el('span', 'paneLabel', 'Compressed'));
+        outputWrap.appendChild(el('div', 'skeleton'));
+        mid.appendChild(outputWrap);
+        var outputMeta = el('div', 'fileMeta mt-2', 'Compressing...');
+        mid.appendChild(outputMeta);
+
+        var right = el('div', 'col-12 col-lg-4 text-lg-center');
+        var saving = el('div', 'saving neutral', '-');
+        right.appendChild(saving);
+        var actions = el('div', 'mt-2');
+        var compareBtn = el('button', 'btn btn-sm btn-primary me-2', 'Compare');
+        compareBtn.type = 'button';
+        compareBtn.disabled = true;
+        var downloadBtnOne = el('button', 'btn btn-sm btn-outline-secondary', 'Download');
+        downloadBtnOne.type = 'button';
+        downloadBtnOne.disabled = true;
+        actions.appendChild(compareBtn);
+        actions.appendChild(downloadBtnOne);
+        right.appendChild(actions);
+
+        row.appendChild(left);
+        row.appendChild(mid);
+        row.appendChild(right);
+        card.appendChild(row);
+        els.results.appendChild(card);
+
+        return {
+          originalUrl: originalUrl,
+          outputWrap: outputWrap,
+          outputMeta: outputMeta,
+          saving: saving,
+          compareBtn: compareBtn,
+          downloadBtnOne: downloadBtnOne
+        };
+      }
+
+      function fillCard(card, entry) {
+        card.outputWrap.textContent = '';
+        card.outputWrap.appendChild(el('span', 'paneLabel', 'Compressed'));
+        var img = el('img');
+        img.src = entry.url;
+        img.alt = entry.name;
+        card.outputWrap.appendChild(img);
+
+        card.outputMeta.textContent =
+          formatBytes(entry.size) + ' - ' + entry.format.toUpperCase() +
+          ' - ' + entry.width + ' x ' + entry.height;
+
+        if (entry.skipped) {
+          card.saving.className = 'saving neutral';
+          card.saving.textContent = 'original kept';
+          card.saving.title = 'Compressing made this file bigger, so the original is used.';
+        } else {
+          var percent = Math.round((1 - entry.size / entry.originalSize) * 100);
+          card.saving.className = 'saving';
+          card.saving.textContent = '-' + percent + '%';
+        }
+
+        card.compareBtn.disabled = false;
+        card.downloadBtnOne.disabled = false;
+        card.compareBtn.addEventListener('click', function () { openViewer(entry); });
+        card.downloadBtnOne.addEventListener('click', function () { downloadOne(entry); });
+      }
+
+      function failCard(card, message) {
+        card.outputWrap.textContent = '';
+        card.outputWrap.appendChild(el('div', 'fileMeta p-3 text-center', message));
+        card.outputMeta.textContent = '';
+        card.saving.className = 'saving error';
+        card.saving.textContent = 'failed';
+      }
+
+      function renderSummary() {
+        if (!state.results.length) { els.summary.textContent = ''; return; }
+        var before = 0, after = 0;
+        state.results.forEach(function (r) { before += r.originalSize; after += r.size; });
+        var percent = before ? Math.round((1 - after / before) * 100) : 0;
+        els.summary.textContent =
+          state.results.length + ' image' + (state.results.length === 1 ? '' : 's') + ': ' +
+          formatBytes(before) + ' to ' + formatBytes(after) +
+          ' (' + (percent > 0 ? 'saved ' + percent + '%' : 'no saving') + ')';
+      }
+
+      /* ------------------------------------------------------- pipeline */
+
+      function clearResults() {
+        closeViewer();
+        releaseUrls();
+        els.results.textContent = '';
+        els.summary.textContent = '';
+        state.results = [];
+        els.downloadBtn.disabled = true;
+      }
+
+      function clearAll() {
+        clearResults();
+        state.files = [];
+        // Without this, picking the same file again fires no change event.
+        els.upload.value = '';
+        els.clearBtn.disabled = true;
+        updateDropInfo();
+        hideProgress();
+      }
+
+      async function run() {
+        var files = state.files;
+        if (!files.length) return;
+
+        var token = ++state.run; // any newer run invalidates this one
+        clearResults();
+        els.clearBtn.disabled = false;
+
+        var options = {
+          quality: parseInt(els.quality.value, 10),
+          format: els.format.value,
+          dither: els.dither.checked
+        };
+
+        for (var i = 0; i < files.length; i++) {
+          if (token !== state.run) return;
+
+          showProgress(i, files.length, files[i].name);
+          var card = buildCard(files[i]);
+          // Let the browser paint the card and the progress bar before the
+          // next (synchronous, CPU heavy) encode blocks the main thread.
+          await sleep(0);
+
+          try {
+            var result = await Imgmin.compress(files[i], options);
+            if (token !== state.run) { URL.revokeObjectURL(result.url); return; }
+            trackUrl(result.url);
+            result.originalUrl = card.originalUrl;
+            result.originalName = files[i].name;
+            fillCard(card, result);
+            state.results.push(result);
+          } catch (err) {
+            if (token !== state.run) return;
+            failCard(card, err && err.message ? err.message : 'Could not compress this file');
+          }
+
+          renderSummary();
+        }
+
+        hideProgress();
+        els.downloadBtn.disabled = state.results.length === 0;
+      }
+
+      /* -------------------------------------------------------- actions */
+
+      function downloadOne(entry) {
+        var a = el('a');
+        a.href = entry.url;
+        a.download = entry.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      async function downloadAll() {
+        els.downloadBtn.disabled = true;
+        for (var i = 0; i < state.results.length; i++) {
+          downloadOne(state.results[i]);
+          // Browsers throttle or block rapid consecutive downloads.
+          if (i < state.results.length - 1) await sleep(250);
+        }
+        els.downloadBtn.disabled = false;
+      }
+
+      /* --------------------------------------------------------- viewer */
+
+      // One shared transform drives every pane, which is exactly what makes
+      // the original and the compressed view stay pixel aligned while zooming.
+      var view = {
+        entry: null, mode: 'side', scale: 1, fit: 1,
+        tx: 0, ty: 0, w: 0, h: 0, split: 0.5, ready: false
+      };
+
+      function activePane() {
+        if (view.mode === 'slider') return els.paneSlider;
+        if (view.mode === 'diff') return els.paneDiff;
+        return els.paneA;
+      }
+
+      function allImages() {
+        return [els.imgA, els.imgB, els.imgS1, els.imgS2];
+      }
+
+      function applyView() {
+        var t = 'translate(' + view.tx + 'px,' + view.ty + 'px) scale(' + view.scale + ')';
+        allImages().forEach(function (img) { img.style.transform = t; });
+
+        // Past 1:1 the browser must invent pixels. Nearest neighbour keeps the
+        // real pixel grid visible so compression artefacts are honest.
+        var pixel = view.scale >= 1.5;
+        [els.paneA, els.paneB, els.paneSlider].forEach(function (p) {
+          p.classList.toggle('pixelated', pixel);
+        });
+        els.diffCanvas.classList.toggle('pixelated', pixel);
+
+        els.zoomLabel.textContent = Math.round(view.scale * 100) + '%';
+        $('zoomOut').disabled = view.scale <= view.fit * 1.001;
+        $('zoomIn').disabled = view.scale >= 39.99;
+        updateSplit();
+        if (view.mode === 'diff') renderDiff();
+      }
+
+      var framePending = false;
+      function scheduleView() {
+        if (framePending) return;
+        framePending = true;
+        requestAnimationFrame(function () {
+          framePending = false;
+          applyView();
+        });
+      }
+
+      function updateSplit() {
+        els.clipLayer.style.width = (view.split * 100) + '%';
+        els.sliderHandle.style.left = (view.split * 100) + '%';
+      }
+
+      function computeFit() {
+        var pane = activePane();
+        var pw = pane.clientWidth, ph = pane.clientHeight;
+        if (!pw || !ph || !view.w) return view.fit;
+        return Math.min(pw / view.w, ph / view.h);
+      }
+
+      function fitToPane() {
+        var pane = activePane();
+        var pw = pane.clientWidth, ph = pane.clientHeight;
+        if (!pw || !ph || !view.w) return;
+        view.fit = computeFit();
+        view.scale = view.fit;
+        view.tx = (pw - view.w * view.scale) / 2;
+        view.ty = (ph - view.h * view.scale) / 2;
+        applyView();
+      }
+
+      function zoomTo(nextScale, cx, cy) {
+        var pane = activePane();
+        var pw = pane.clientWidth, ph = pane.clientHeight;
+        if (cx === undefined) { cx = pw / 2; cy = ph / 2; }
+        var next = clamp(nextScale, view.fit, 40);
+        if (next === view.scale) return;
+        view.tx = cx - (cx - view.tx) * (next / view.scale);
+        view.ty = cy - (cy - view.ty) * (next / view.scale);
+        view.scale = next;
+        scheduleView();
+      }
+
+      function renderDiff() {
+        var canvas = els.diffCanvas;
+        var pane = els.paneDiff;
+        var dpr = window.devicePixelRatio || 1;
+        var w = pane.clientWidth, h = pane.clientHeight;
+        if (!w || !h || !view.ready) return;
+
+        if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+          canvas.width = Math.round(w * dpr);
+          canvas.height = Math.round(h * dpr);
+        }
+        var ctx = canvas.getContext('2d');
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.imageSmoothingEnabled = view.scale < 1.5;
+        ctx.setTransform(view.scale * dpr, 0, 0, view.scale * dpr, view.tx * dpr, view.ty * dpr);
+        try {
+          ctx.drawImage(els.imgA, 0, 0);
+          // 'difference' leaves black wherever the two are identical, so any
+          // visible detail is exactly what compression changed.
+          ctx.globalCompositeOperation = 'difference';
+          ctx.drawImage(els.imgB, 0, 0);
+        } catch (e) { /* images not ready yet */ }
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      function setMode(mode) {
+        var pane = activePane();
+        var oldW = pane.clientWidth, oldH = pane.clientHeight;
+        // Remember the image point at the centre so switching mode does not
+        // jump to a different part of the picture.
+        var centreX = (oldW / 2 - view.tx) / view.scale;
+        var centreY = (oldH / 2 - view.ty) / view.scale;
+
+        view.mode = mode;
+        els.sideWrap.hidden = mode !== 'side';
+        els.paneSlider.hidden = mode !== 'slider';
+        els.paneDiff.hidden = mode !== 'diff';
+
+        Array.prototype.forEach.call(
+          els.viewer.querySelectorAll('[data-mode]'),
+          function (b) { b.classList.toggle('active', b.getAttribute('data-mode') === mode); }
+        );
+
+        var next = activePane();
+        view.fit = computeFit();
+        if (view.scale < view.fit) { fitToPane(); return; }
+        view.tx = next.clientWidth / 2 - centreX * view.scale;
+        view.ty = next.clientHeight / 2 - centreY * view.scale;
+        applyView();
+      }
+
+      function openViewer(entry) {
+        view.entry = entry;
+        view.ready = false;
+        view.split = 0.5;
+
+        els.viewerTitle.textContent = entry.originalName || entry.name;
+        var savedPercent = entry.skipped
+          ? 'original kept'
+          : Math.round((1 - entry.size / entry.originalSize) * 100) + '% smaller';
+        els.viewerFoot.textContent = '';
+        [
+          ['Original', formatBytes(entry.originalSize)],
+          ['Compressed', formatBytes(entry.size) + ' (' + entry.format.toUpperCase() + ')'],
+          ['Result', savedPercent],
+          ['Pixels', entry.width + ' x ' + entry.height],
+          ['Tip', 'scroll to zoom, drag to pan, double click for 1:1']
+        ].forEach(function (pair) {
+          var span = el('span');
+          span.appendChild(el('strong', null, pair[0] + ': '));
+          span.appendChild(document.createTextNode(pair[1]));
+          els.viewerFoot.appendChild(span);
+        });
+
+        els.imgA.src = entry.originalUrl;
+        els.imgS1.src = entry.originalUrl;
+        els.imgB.src = entry.url;
+        els.imgS2.src = entry.url;
+
+        els.viewer.hidden = false;
+        document.body.style.overflow = 'hidden';
+        setMode(view.mode);
+
+        Promise.all(allImages().map(function (img) {
+          return img.decode ? img.decode().catch(function () {}) : Promise.resolve();
+        })).then(function () {
+          view.w = els.imgA.naturalWidth || entry.width;
+          view.h = els.imgA.naturalHeight || entry.height;
+          view.ready = true;
+          fitToPane();
+        });
+      }
+
+      function closeViewer() {
+        if (els.viewer.hidden) return;
+        els.viewer.hidden = true;
+        document.body.style.overflow = '';
+        view.ready = false;
+        view.entry = null;
+        // Drop the decoded copies - these are full resolution and can be huge.
+        allImages().forEach(function (img) { img.removeAttribute('src'); });
+      }
+
+      /* -------------------------------------------------- viewer events */
+
+      function paneFromEvent(event) {
+        return event.currentTarget;
+      }
+
+      [els.paneA, els.paneB, els.paneSlider, els.paneDiff].forEach(function (pane) {
+        pane.addEventListener('wheel', function (event) {
+          if (!view.ready) return;
+          event.preventDefault();
+          var rect = paneFromEvent(event).getBoundingClientRect();
+          var factor = Math.pow(1.0015, -event.deltaY);
+          zoomTo(view.scale * factor, event.clientX - rect.left, event.clientY - rect.top);
+        }, { passive: false });
+
+        pane.addEventListener('dblclick', function (event) {
+          if (!view.ready) return;
+          var rect = paneFromEvent(event).getBoundingClientRect();
+          var target = view.scale >= 1 ? view.fit : 1;
+          zoomTo(target, event.clientX - rect.left, event.clientY - rect.top);
+        });
+
+        var dragging = false, lastX = 0, lastY = 0, pointerId = null;
+
+        pane.addEventListener('pointerdown', function (event) {
+          if (!view.ready || event.target === els.sliderHandle) return;
+          if (event.button !== 0 && event.pointerType === 'mouse') return;
+          // Stops text selection and any residual native drag gesture.
+          event.preventDefault();
+          dragging = true;
+          pointerId = event.pointerId;
+          lastX = event.clientX;
+          lastY = event.clientY;
+          pane.setPointerCapture(pointerId);
+          pane.classList.add('dragging');
+        });
+
+        pane.addEventListener('pointermove', function (event) {
+          if (!dragging || event.pointerId !== pointerId) return;
+          event.preventDefault();
+          view.tx += event.clientX - lastX;
+          view.ty += event.clientY - lastY;
+          lastX = event.clientX;
+          lastY = event.clientY;
+          scheduleView();
+        });
+
+        function endDrag(event) {
+          if (!dragging || (event.pointerId !== undefined && event.pointerId !== pointerId)) return;
+          dragging = false;
+          pane.classList.remove('dragging');
+          if (pointerId !== null && pane.hasPointerCapture && pane.hasPointerCapture(pointerId)) {
+            pane.releasePointerCapture(pointerId);
+          }
+          pointerId = null;
+        }
+
+        pane.addEventListener('pointerup', endDrag);
+        pane.addEventListener('pointercancel', endDrag);
+      });
+
+      (function () {
+        var sliding = false;
+        els.sliderHandle.addEventListener('pointerdown', function (event) {
+          sliding = true;
+          els.sliderHandle.setPointerCapture(event.pointerId);
+          event.stopPropagation();
+        });
+        els.sliderHandle.addEventListener('pointermove', function (event) {
+          if (!sliding) return;
+          var rect = els.paneSlider.getBoundingClientRect();
+          view.split = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+          updateSplit();
+          event.stopPropagation();
+        });
+        els.sliderHandle.addEventListener('pointerup', function (event) {
+          sliding = false;
+          els.sliderHandle.releasePointerCapture(event.pointerId);
+          event.stopPropagation();
+        });
+      })();
+
+      // Belt and braces: nothing inside the viewer may start a native drag.
+      els.viewer.addEventListener('dragstart', function (event) { event.preventDefault(); });
+
+      Array.prototype.forEach.call(els.viewer.querySelectorAll('[data-mode]'), function (btn) {
+        btn.addEventListener('click', function () { setMode(btn.getAttribute('data-mode')); });
+      });
+
+      $('zoomIn').addEventListener('click', function () { zoomTo(view.scale * 1.5); });
+      $('zoomOut').addEventListener('click', function () { zoomTo(view.scale / 1.5); });
+      $('zoomFit').addEventListener('click', fitToPane);
+      $('zoomActual').addEventListener('click', function () { zoomTo(1); });
+      $('zoom400').addEventListener('click', function () { zoomTo(4); });
+      $('viewerClose').addEventListener('click', closeViewer);
+
+      document.addEventListener('keydown', function (event) {
+        if (els.viewer.hidden) return;
+        var step = 60;
+        switch (event.key) {
+          case 'Escape': closeViewer(); break;
+          case '+': case '=': zoomTo(view.scale * 1.5); break;
+          case '-': case '_': zoomTo(view.scale / 1.5); break;
+          case '0': fitToPane(); break;
+          case '1': zoomTo(1); break;
+          case 'ArrowLeft': view.tx += step; applyView(); break;
+          case 'ArrowRight': view.tx -= step; applyView(); break;
+          case 'ArrowUp': view.ty += step; applyView(); break;
+          case 'ArrowDown': view.ty -= step; applyView(); break;
+          default: return;
+        }
+        event.preventDefault();
+      });
+
+      window.addEventListener('resize', function () {
+        if (els.viewer.hidden || !view.ready) return;
+        view.fit = computeFit();
+        if (view.scale < view.fit) fitToPane();
+        else applyView();
+      });
+
+      /* --------------------------------------------------------- events */
+
+      /* ------------------------------------------------------ drop zone */
+
+      var ACCEPTED = /^image\/(jpeg|jpg|png|webp)$/i;
+
+      function updateDropInfo() {
+        els.dropInfo.textContent = '';
+        if (!state.files.length) {
+          els.dropTitle.textContent = 'Drop images here';
+          return;
+        }
+        els.dropTitle.textContent =
+          state.files.length + ' image' + (state.files.length === 1 ? '' : 's') + ' ready';
+        state.files.slice(0, 4).forEach(function (file) {
+          els.dropInfo.appendChild(el('span', 'chip', file.name));
+        });
+        if (state.files.length > 4) {
+          els.dropInfo.appendChild(el('span', 'chip', '+' + (state.files.length - 4) + ' more'));
+        }
+      }
+
+      // Single entry point for the picker, drag and drop, and paste.
+      function acceptFiles(list) {
+        var files = Array.prototype.slice.call(list || []).filter(function (f) {
+          return ACCEPTED.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
+        });
+        if (!files.length) return;
+        state.files = files;
+        updateDropInfo();
+        run();
+      }
+
+      function dragHasFiles(event) {
+        var dt = event.dataTransfer;
+        return dt && Array.prototype.indexOf.call(dt.types || [], 'Files') !== -1;
+      }
+
+      // Counted, because dragenter/dragleave also fire for every child element.
+      var dragDepth = 0;
+
+      window.addEventListener('dragenter', function (event) {
+        if (!dragHasFiles(event)) return;
+        event.preventDefault();
+        dragDepth++;
+        els.dropZone.classList.add('dragging');
+      });
+
+      window.addEventListener('dragover', function (event) {
+        if (!dragHasFiles(event)) return;
+        event.preventDefault(); // without this the browser refuses the drop
+      });
+
+      window.addEventListener('dragleave', function (event) {
+        if (!dragHasFiles(event)) return;
+        dragDepth = Math.max(0, dragDepth - 1);
+        if (!dragDepth) els.dropZone.classList.remove('dragging');
+      });
+
+      window.addEventListener('drop', function (event) {
+        // Always prevent the default, otherwise a stray drop navigates the tab
+        // to the dropped file and loses everything on screen.
+        event.preventDefault();
+        dragDepth = 0;
+        els.dropZone.classList.remove('dragging');
+        if (event.dataTransfer) acceptFiles(event.dataTransfer.files);
+      });
+
+      window.addEventListener('paste', function (event) {
+        if (!els.viewer.hidden) return;
+        var files = event.clipboardData && event.clipboardData.files;
+        if (files && files.length) {
+          event.preventDefault();
+          acceptFiles(files);
+        }
+      });
+
+      els.dropZone.addEventListener('click', function (event) {
+        // The label already opens the picker; do not open it twice.
+        if (event.target.closest('label, button, a, input, select')) return;
+        els.upload.click();
+      });
+
+      els.upload.addEventListener('change', function (event) {
+        var files = Array.prototype.slice.call(event.target.files);
+        if (!files.length) { clearAll(); return; }
+        acceptFiles(files);
+      });
+
+      var rerunTimer = null;
+      function scheduleRerun() {
+        clearTimeout(rerunTimer);
+        rerunTimer = setTimeout(function () {
+          if (state.files.length) run();
+        }, 350);
+      }
+
+      function updateQualityHint() {
+        var q = parseInt(els.quality.value, 10);
+        els.qualityValue.textContent = q;
+        // Chromium turns off chroma subsampling at >= 0.90, which inflates the
+        // file for detail the eye cannot resolve.
+        els.qualityHint.textContent = q >= 90
+          ? 'Above 85 the file grows sharply with no visible gain.'
+          : '';
+      }
+
+      els.quality.addEventListener('input', function () {
+        updateQualityHint();
+        scheduleRerun();
+      });
+      els.format.addEventListener('change', scheduleRerun);
+      els.dither.addEventListener('change', scheduleRerun);
+
+      els.downloadBtn.addEventListener('click', downloadAll);
+      els.clearBtn.addEventListener('click', clearAll);
+      window.addEventListener('beforeunload', releaseUrls);
+
+      updateQualityHint();
+      updateDropInfo();
+      setMode('side');
+      if (!Imgmin.supportsWebP()) {
+        els.format.querySelector('option[value="webp"]').disabled = true;
+      }
+    })();
+  </script>
+</body>
+
+</html>
