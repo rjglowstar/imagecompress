@@ -1,20 +1,18 @@
-/*
- * imgmin.js - client side image compression
- *
- * JPEG / WebP go through the canvas encoder (lossy, quality controlled).
- * PNG is handled by a built in quantizer + PNG8 encoder, because
- * canvas.toDataURL('image/png', quality) ignores the quality argument and
- * re-encodes at 32bpp, which usually makes the file *bigger* than the source.
- */
+
 var Imgmin = (function () {
   'use strict';
 
   var MIME = { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
   var PNG_SIG = [137, 80, 78, 71, 13, 10, 26, 10];
 
-  /* ------------------------------------------------------------------ *
-   * capabilities
-   * ------------------------------------------------------------------ */
+  var MAX_CANVAS_SIDE = 16384;
+  var MAX_CANVAS_AREA = 268435456;
+
+  function releaseCanvas(canvas) {
+    if (!canvas) return;
+    canvas.width = 0;
+    canvas.height = 0;
+  }
 
   var webpSupported = null;
   function supportsWebP() {
@@ -26,15 +24,8 @@ var Imgmin = (function () {
     return webpSupported;
   }
 
-  // PNG8 needs a real zlib stream for IDAT. CompressionStream gives us one.
   var canDeflate = typeof CompressionStream === 'function';
 
-  /* ------------------------------------------------------------------ *
-   * decoding / drawing
-   * ------------------------------------------------------------------ */
-
-  // Returns a drawable source. The caller must call release() when done so
-  // the object URL / ImageBitmap is not leaked.
   function loadSource(file) {
     if (typeof createImageBitmap === 'function') {
       return createImageBitmap(file).then(function (bitmap) {
@@ -53,8 +44,7 @@ var Imgmin = (function () {
     var url = URL.createObjectURL(file);
     var img = new Image();
     img.src = url;
-    // decode() resolves only once the pixels are actually available - this is
-    // what guarantees naturalWidth/naturalHeight are non-zero before we draw.
+
     var ready = img.decode ? img.decode() : new Promise(function (resolve, reject) {
       img.onload = resolve;
       img.onerror = function () { reject(new Error('Could not decode image')); };
@@ -80,18 +70,11 @@ var Imgmin = (function () {
     });
   }
 
-  /* ------------------------------------------------------------------ *
-   * PNG8: colour quantization
-   * ------------------------------------------------------------------ */
-
   function clamp255(v) {
     v = Math.round(v);
     return v < 0 ? 0 : v > 255 ? 255 : v;
   }
 
-  // Histogram at reduced precision (5 bits RGB, 4 bits alpha) so median cut
-  // stays fast on photos, but each bucket keeps full precision sums so the
-  // representative colour is still accurate.
   function histogram(data, pixels) {
     var buckets = new Map();
     var transparent = false;
@@ -131,8 +114,7 @@ var Imgmin = (function () {
         if (v > hi[k]) hi[k] = v;
       }
     }
-    // Weight the spread the way the eye sees it, so we do not waste palette
-    // slots splitting blues while greens band.
+
     var weight = [2, 4, 1, 3], best = -1, ch = 0;
     for (var k2 = 0; k2 < 4; k2++) {
       var span = (hi[k2] - lo[k2]) * weight[k2];
@@ -155,7 +137,6 @@ var Imgmin = (function () {
       var ch = box.channel;
       var list = box.list.slice().sort(function (x, y) { return x[ch] - y[ch]; });
 
-      // Split at the weighted median so both halves carry similar pixel mass.
       var half = box.count / 2, acc = 0, cut = 0;
       for (var j = 0; j < list.length - 1; j++) {
         acc += list[j].count;
@@ -195,14 +176,10 @@ var Imgmin = (function () {
     if (hist.transparent) palette.unshift([0, 0, 0, 0]);
     if (palette.length === 0) palette.push([0, 0, 0, 0]);
 
-    // tRNS must cover a contiguous run from index 0, so put the translucent
-    // entries first - that keeps the chunk as short as possible.
     palette.sort(function (x, y) { return x[3] - y[3]; });
     return { palette: palette, hasTransparent: hist.transparent };
   }
 
-  // 18 bit lookup cache (5/5/5 RGB + 3 bit alpha) so we do not run a full
-  // palette scan for every pixel.
   function makeMatcher(palette) {
     var cache = new Int16Array(1 << 18).fill(-1);
 
@@ -243,48 +220,60 @@ var Imgmin = (function () {
       return indices;
     }
 
-    // Floyd-Steinberg, serpentine. Alpha is left untouched - diffusing error
-    // into it produces speckled edges.
-    var buf = new Float32Array(pixels * 3);
-    for (var q = 0, j = 0; q < pixels; q++, j += 4) {
-      buf[q * 3] = data[j];
-      buf[q * 3 + 1] = data[j + 1];
-      buf[q * 3 + 2] = data[j + 2];
-    }
-
-    function diffuse(x, y, er, eg, eb, f) {
-      if (x < 0 || x >= width || y >= height) return;
-      var o = (y * width + x) * 3;
-      buf[o] += er * f; buf[o + 1] += eg * f; buf[o + 2] += eb * f;
-    }
+    var rowLen = (width + 2) * 3;
+    var errCur = new Float32Array(rowLen);
+    var errNext = new Float32Array(rowLen);
 
     for (var y = 0; y < height; y++) {
       var reverse = (y & 1) === 1;
       var dir = reverse ? -1 : 1;
+
       for (var k = 0; k < width; k++) {
         var x = reverse ? width - 1 - k : k;
-        var pi = y * width + x, di = pi * 4, bi = pi * 3;
+        var pi = y * width + x;
+        var di = pi * 4;
         var av = data[di + 3];
         if (av === 0) { indices[pi] = transparentIndex; continue; }
 
-        var r = clamp255(buf[bi]), g = clamp255(buf[bi + 1]), b = clamp255(buf[bi + 2]);
+        var e = (x + 1) * 3; // +1 for the padding column
+        var r = clamp255(data[di] + errCur[e]);
+        var g = clamp255(data[di + 1] + errCur[e + 1]);
+        var b = clamp255(data[di + 2] + errCur[e + 2]);
+
         var idx = match(r, g, b, av);
         indices[pi] = idx;
 
         var pe = palette[idx];
         var er = r - pe[0], eg = g - pe[1], eb = b - pe[2];
-        diffuse(x + dir, y, er, eg, eb, 7 / 16);
-        diffuse(x - dir, y + 1, er, eg, eb, 3 / 16);
-        diffuse(x, y + 1, er, eg, eb, 5 / 16);
-        diffuse(x + dir, y + 1, er, eg, eb, 1 / 16);
+
+        var ahead = (x + dir + 1) * 3;
+        var behind = (x - dir + 1) * 3;
+        var below = (x + 1) * 3;
+
+        errCur[ahead] += er * 0.4375;
+        errCur[ahead + 1] += eg * 0.4375;
+        errCur[ahead + 2] += eb * 0.4375;
+
+        errNext[behind] += er * 0.1875;
+        errNext[behind + 1] += eg * 0.1875;
+        errNext[behind + 2] += eb * 0.1875;
+
+        errNext[below] += er * 0.3125;
+        errNext[below + 1] += eg * 0.3125;
+        errNext[below + 2] += eb * 0.3125;
+
+        errNext[ahead] += er * 0.0625;
+        errNext[ahead + 1] += eg * 0.0625;
+        errNext[ahead + 2] += eb * 0.0625;
       }
+
+      var swap = errCur;
+      errCur = errNext;
+      errNext = swap;
+      errNext.fill(0);
     }
     return indices;
   }
-
-  /* ------------------------------------------------------------------ *
-   * PNG8: container
-   * ------------------------------------------------------------------ */
 
   var CRC_TABLE = (function () {
     var table = new Uint32Array(256);
@@ -324,8 +313,6 @@ var Imgmin = (function () {
   }
 
   function deflate(bytes) {
-    // CompressionStream('deflate') emits a zlib stream, which is exactly the
-    // format IDAT expects.
     var stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate'));
     return new Response(stream).arrayBuffer().then(function (buf) {
       return new Uint8Array(buf);
@@ -333,14 +320,13 @@ var Imgmin = (function () {
   }
 
   function buildPNG8(width, height, palette, indices) {
-    // Fewer colours means fewer bits per pixel - a big win for logos and icons.
     var depth = palette.length <= 2 ? 1 : palette.length <= 4 ? 2 : palette.length <= 16 ? 4 : 8;
     var perByte = 8 / depth;
     var rowBytes = Math.ceil(width / perByte);
     var raw = new Uint8Array((rowBytes + 1) * height);
 
     for (var y = 0, o = 0; y < height; y++) {
-      raw[o++] = 0; // filter: None. Indexed data does not benefit from the others.
+      raw[o++] = 0;
       if (depth === 8) {
         raw.set(indices.subarray(y * width, (y + 1) * width), o);
       } else {
@@ -358,7 +344,7 @@ var Imgmin = (function () {
       view.setUint32(0, width);
       view.setUint32(4, height);
       ihdr[8] = depth;
-      ihdr[9] = 3; // colour type 3 = indexed
+      ihdr[9] = 3;
       ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
 
       var plte = new Uint8Array(palette.length * 3);
@@ -382,21 +368,15 @@ var Imgmin = (function () {
   }
 
   function encodePNG(canvas, ctx, quality, dither) {
-    if (!canDeflate) return toBlob(canvas, MIME.png); // no zlib available
+    if (!canDeflate) return toBlob(canvas, MIME.png);
     var maxColors = Math.max(2, Math.min(256, Math.round((quality / 100) * 254) + 2));
     var image = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var built = buildPalette(image.data, canvas.width * canvas.height, maxColors);
-    // Palette is sorted by alpha, so when the image has any fully transparent
-    // pixel its entry is always index 0.
     var indices = mapPixels(
       image.data, canvas.width, canvas.height, built.palette, 0, dither
     );
     return buildPNG8(canvas.width, canvas.height, built.palette, indices);
   }
-
-  /* ------------------------------------------------------------------ *
-   * public API
-   * ------------------------------------------------------------------ */
 
   function extensionOf(name) {
     var dot = name.lastIndexOf('.');
@@ -426,20 +406,28 @@ var Imgmin = (function () {
     var dither = !!opts.dither;
 
     return loadSource(file).then(function (src) {
+      var canvas = null;
       try {
         var width = src.width, height = src.height;
         if (!width || !height) throw new Error('Image reported zero dimensions');
 
+        if (width > MAX_CANVAS_SIDE || height > MAX_CANVAS_SIDE ||
+            width * height > MAX_CANVAS_AREA) {
+          throw new Error(
+            'Image is too large for this browser to process (' +
+            width + ' x ' + height + ')'
+          );
+        }
+
         var format = resolveFormat(file, opts.format || 'auto');
         var opaque = format === 'jpeg';
 
-        var canvas = document.createElement('canvas');
+        canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
         var ctx = canvas.getContext('2d', { willReadFrequently: format === 'png' });
+        if (!ctx) throw new Error('Could not get a 2D drawing context');
 
-        // JPEG has no alpha channel. Without this, every transparent pixel
-        // decodes as black - the "dark background" problem.
         if (opaque) {
           ctx.fillStyle = opts.background || '#ffffff';
           ctx.fillRect(0, 0, width, height);
@@ -451,8 +439,10 @@ var Imgmin = (function () {
           : toBlob(canvas, MIME[format], quality / 100);
 
         return encoded.then(function (blob) {
-          // Re-encoding can grow a file that was already well optimised.
-          // Handing back something bigger is never the right answer.
+
+          releaseCanvas(canvas);
+          canvas = null;
+
           var grew = blob.size >= file.size;
           var finalBlob = grew ? file : blob;
           var finalFormat = grew ? resolveFormat(file, 'auto') : format;
@@ -467,7 +457,14 @@ var Imgmin = (function () {
             originalSize: file.size,
             skipped: grew
           };
+        }, function (err) {
+          releaseCanvas(canvas);
+          canvas = null;
+          throw err;
         });
+      } catch (err) {
+        releaseCanvas(canvas);
+        throw err;
       } finally {
         src.release();
       }
@@ -481,11 +478,6 @@ var Imgmin = (function () {
   };
 })();
 
-/*
- * Back-compat shim for the old synchronous jic.compress(imageElement, ...).
- * Kept only so older pages in this folder keep working - new code should call
- * Imgmin.compress(file, options), which is async and never races the decoder.
- */
 var jic = {
   compress: function (imageElement, qualityPercentage, fileType) {
     var mimeType = fileType === 'png' ? 'image/png' : 'image/jpeg';

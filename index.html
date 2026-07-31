@@ -1363,10 +1363,11 @@
       // results: what is currently on screen, used by "Download all"
       var state = {
         files: [],
-        urls: [],
+        urls: new Set(), // every live object URL, so none of them leak
         results: [],   // indexed by file position, holes where a file failed
         cards: [],     // same indexing
         overrides: [], // per image quality, undefined means use the global one
+        jobs: [],      // per image re-encode counter, so stale ones are dropped
         run: 0
       };
 
@@ -1403,11 +1404,19 @@
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
       }
 
-      function trackUrl(url) { state.urls.push(url); return url; }
+      function trackUrl(url) { state.urls.add(url); return url; }
+
+      // Revoke and forget in one step. A plain array let replaced URLs pile up
+      // as dead strings and get revoked a second time on clear.
+      function releaseUrl(url) {
+        if (!url) return;
+        URL.revokeObjectURL(url);
+        state.urls.delete(url);
+      }
 
       function releaseUrls() {
-        state.urls.forEach(URL.revokeObjectURL);
-        state.urls = [];
+        state.urls.forEach(function (url) { URL.revokeObjectURL(url); });
+        state.urls.clear();
       }
 
       function el(tag, className, text) {
@@ -1424,6 +1433,14 @@
       }
 
       function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+      // Debounce handle for the viewer's quality slider, cancellable from the
+      // pipeline so a pending re-encode cannot outlive the batch it belongs to.
+      var vQualityTimer = null;
+      function cancelPendingRecompress() {
+        clearTimeout(vQualityTimer);
+        vQualityTimer = null;
+      }
 
       /* ------------------------------------------------------- progress */
 
@@ -1644,6 +1661,11 @@
         if (!card || !file) return null;
 
         var token = state.run;
+        // Dragging the slider can start a second encode before the first has
+        // finished. Only the newest job for an index may write a result.
+        var job = state.jobs[index] = (state.jobs[index] || 0) + 1;
+        var stale = function () { return token !== state.run || job !== state.jobs[index]; };
+
         var viewing = !els.viewer.hidden && view.entry && view.entry.index === index;
         setCardBusy(card, 'Re-compressing...');
         if (viewing) setViewerBusy(true);
@@ -1658,9 +1680,10 @@
         };
 
         var entry = null;
+        var problem = '';
         try {
           var result = await Imgmin.compress(file, options);
-          if (token !== state.run) { URL.revokeObjectURL(result.url); return null; }
+          if (stale()) { releaseUrl(result.url); return null; }
 
           var previous = state.results[index];
           trackUrl(result.url);
@@ -1681,14 +1704,27 @@
             } else if (view.entry === previous) {
               closeViewer();
             }
-            URL.revokeObjectURL(previous.url);
+            releaseUrl(previous.url);
           }
         } catch (err) {
-          if (token !== state.run) return null;
-          failCard(card, err && err.message ? err.message : 'Could not compress this file');
+          if (stale()) return null;
+          problem = err && err.message ? err.message : 'Could not compress this file';
+          // A failed RE-encode must not throw away a result that is still
+          // perfectly good, or the card would read "failed" while the summary
+          // and Download all still counted the old file.
+          var kept = state.results[index];
+          if (kept) {
+            fillCard(card, kept);
+            entry = kept;
+          } else {
+            failCard(card, problem);
+          }
         }
 
-        if (viewing) setViewerBusy(false);
+        if (viewing) {
+          setViewerBusy(false);
+          if (problem) els.vStatus.textContent = 'Failed - kept previous';
+        }
         renderSummary();
         updateActions();
         return entry;
@@ -1709,12 +1745,16 @@
       /* ------------------------------------------------------- pipeline */
 
       function clearResults() {
+        // A queued per image re-encode must not fire against the next batch,
+        // where the same index is a different photo entirely.
+        cancelPendingRecompress();
         closeViewer();
         releaseUrls();
         els.results.textContent = '';
         els.summary.textContent = '';
         state.results = [];
         state.cards = [];
+        state.jobs = [];
         updateActions();
       }
 
@@ -1772,7 +1812,7 @@
 
           try {
             var result = await Imgmin.compress(files[i], options);
-            if (token !== state.run) { URL.revokeObjectURL(result.url); return; }
+            if (token !== state.run) { releaseUrl(result.url); return; }
             trackUrl(result.url);
             result.index = i;
             result.quality = options.quality;
@@ -1815,7 +1855,9 @@
           // Browsers throttle or block rapid consecutive downloads.
           if (i < ready.length - 1) await sleep(250);
         }
-        els.downloadBtn.disabled = false;
+        // Not a blanket re-enable: if Clear ran while downloads were spacing
+        // out, the button must stay disabled.
+        updateActions();
       }
 
       /* --------------------------------------------------------- viewer */
@@ -2064,7 +2106,12 @@
         // Suspend the batch: the viewer needs the main thread to stay smooth.
         setPaused(true);
         setMode(view.mode);
-        if (typeof entry.index === 'number') syncQualityUI(entry.index);
+
+        // Without an index there is no card to re-encode against, so hide the
+        // control rather than leaving it showing a stale number.
+        var tunable = typeof entry.index === 'number';
+        els.vQualityGroup.hidden = !tunable;
+        if (tunable) syncQualityUI(entry.index);
 
         Promise.all(allImages().map(function (img) {
           return img.decode ? img.decode().catch(function () {}) : Promise.resolve();
@@ -2181,7 +2228,6 @@
 
       // Quality slider in the viewer toolbar. Debounced, because dragging fires
       // continuously and each encode is expensive.
-      var vQualityTimer = null;
       els.vQuality.addEventListener('input', function () {
         if (!view.entry || typeof view.entry.index !== 'number') return;
         var index = view.entry.index;
@@ -2296,7 +2342,12 @@
       window.addEventListener('dragleave', function (event) {
         if (!dragHasFiles(event)) return;
         dragDepth = Math.max(0, dragDepth - 1);
-        if (!dragDepth) els.dropZone.classList.remove('dragging');
+        // A null relatedTarget means the pointer left the window altogether.
+        // Without this the counter can drift and leave the zone lit up.
+        if (!dragDepth || !event.relatedTarget) {
+          dragDepth = 0;
+          els.dropZone.classList.remove('dragging');
+        }
       });
 
       window.addEventListener('drop', function (event) {
