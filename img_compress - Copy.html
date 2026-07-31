@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image Compressor</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="bootstrap.css" rel="stylesheet">
+
+  <!-- Style css -->
+  <link href="style.css" rel="stylesheet">
+
+  <style>
+    body {
+      padding-top: 50px;
+    }
+
+    .imgCompresser {
+      position: relative;
+      min-height: 100vh;
+    }
+
+    .imgCompresser .container {
+      max-width: 95%;
+    }
+
+    .imgCompresser h1 {
+      font-family: 'Pacifico', cursive;
+      font-size: 36px;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .imgCompresser h5 {
+      font-weight: 400;
+      font-size: 15px;
+    }
+
+    .imgCompresser .btn {
+      padding: 8px 20px;
+      border-radius: 30px;
+    }
+
+    .imgCompresser .input-group.w-50 {
+      width: 50%;
+      margin: 0 auto;
+    }
+
+    .imgCompresser .form-control {
+      border-color: #edecec;
+      text-transform: capitalize;
+      padding: 15px 20px;
+      color: #a6b4c8;
+    }
+
+    #appendImg img {
+      object-fit: cover;
+    }
+
+    #appendImgConverted .imgWrapper {
+      max-width: 100%;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .imgWrapper img {
+      width: 100%;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+
+    #appendImgConverted strong {
+      display: inline-block;
+      min-width: 95px;
+    }
+
+    div#loader {
+      display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      z-index: 9;
+    }
+
+    div#loader .loaderWrap {
+      position: fixed;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px;
+    }
+
+    div#loader img {
+      margin: 0 auto;
+    }
+
+    #uploadItem {
+      padding-left: 15px;
+      text-align: center;
+    }
+
+    small {
+      font-size: 12px;
+    }
+
+    @media(max-width:575px) {
+      body {
+        padding-top: 0;
+      }
+
+      div#loader .loaderWrap {
+        width: 95%;
+      }
+
+      div#loader .loaderWrap img {
+        width: 100%;
+      }
+
+      .customContainer {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .imgCompresser h1 {
+        font-size: 32px;
+      }
+
+      .imgCompresser .input-group.w-50 {
+        width: 95% !important;
+      }
+
+      .imgWrapper {
+        text-align: center;
+      }
+
+      .imgWrapper img {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        min-height: auto;
+      }
+
+      #appendImgConverted strong {
+        min-width: unset;
+      }
+
+      #appendImgConverted .imgWrapper {
+        position: relative;
+        padding-bottom: 23px;
+      }
+
+      .imgWrapper strong {
+        font-size: 15px;
+        font-weight: 500;
+        display: block;
+        margin: 0 !important;
+        margin-left: 15px;
+      }
+
+      #appendImgConverted .imgWrapper strong {
+        white-space: nowrap;
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="loader">
+    <div class="loaderWrap">
+      <h1 id="uploadItem"></h1>
+      <img id="uploadImg" src="img_load.gif" alt="loader"
+        width="500">
+      <img id="convertImg" src="compress.gif" alt="loader"
+        width="400" class="mt-4" style="display: none;">
+    </div>
+  </div>
+  <section class="imgCompresser">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <h1 class="text-center mt-4">Image Compressor</h1>
+        </div>
+        <div class="col-12 py-4">
+          <div class="input-group w-50">
+            <input class="form-control" id="upload" type="file" placeholder="Upload Image"
+              accept="image/jpg, image/png, image/jpeg, image/webp" onchange="imgToData(this)" multiple="">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12 text-center">
+          <div class="btn-group">
+            <button class="btn btn-outline-secondary" id="downloadImg_btn" type="button" onclick="allImageDown_func()"
+              disabled>Download</button>
+            <button class="btn btn-outline-secondary" id="clear_btn" type="button" onclick="clearAll(), clearInput();"
+              disabled>Clear</button>
+          </div>
+        </div>
+        <div class="col-6 text-end">
+          <div id="totalFiles"></div>
+        </div>
+        <div class="col-6">
+          <div id="convertFiles"></div>
+        </div>
+      </div>
+      <div class="row justify-content-center gap-3" id="appendImgConverted"></div>
+    </div>
+  </section>
+
+  <!--Latest Jquery-->
+  <script src="jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+  <script src="imgmin.js"></script>
+
+  <script>
+    const input = document.getElementById('upload');
+    const totalFiles = document.getElementById('totalFiles');
+    const uploadItem = document.getElementById('uploadItem');
+    const appendImgConverted = document.getElementById('appendImgConverted');
+    const convertFiles = document.getElementById('convertFiles');
+    const loader = document.getElementById('loader');
+
+    function fileSizeConvert(bytes, decimals = 2) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const dm = decimals < 0 ? 0 : decimals;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    function clearAll() {
+      totalFiles.innerHTML = '';
+      uploadItem.innerHTML = '';
+      appendImgConverted.innerHTML = '';
+      convertFiles.innerHTML = '';
+      loader.style.display = '';
+      document.getElementById('downloadImg_btn').disabled = true;
+      document.getElementById('clear_btn').disabled = true;
+    }
+
+    function clearInput() {
+      input.value = ''
+    }
+
+    function imgToData(input) {
+      clearAll();
+      totalFiles.innerHTML = `<h5 class="my-3">Total: <strong>${input.files.length}</strong></h5>`;
+
+      function readFile(index) {
+        const Files = new FileReader();
+        if (index >= input.files.length) return;
+
+        const file = input.files[index];
+        const fname = file.name;
+        const fsize = file.size;
+        const ftype = file.type.slice(6);
+        const n = index + 1;
+
+        Files.onload = function (event) {
+          convertFiles.innerHTML = `<h5 class="my-3">Convert: <strong>${n}</strong></h5>`;
+          loader.style.display = 'block';
+          document.body.style.cursor = 'wait';
+
+          const image = new Image();
+          image.src = event.target.result;
+          const quality = ftype == 'png' ? 10 : 50;          
+                    
+          image.onload = function () {
+            const convertedImgSrc = jic.compress(image, quality, ftype).src;
+            appendImgConverted.innerHTML += `
+            <div class="col-1">
+              <div class="imgWrapper my-3">
+                <a id="downloadImg_${n}" onclick="singleImg_downFunc(${n});" href="javascript:void(0);">
+                  <img src="${convertedImgSrc}" class="converted_img" title="${fname}"/>
+                </a>
+                </br>${ftype}</br>
+                <small>
+                  <strong>Size: &nbsp;  ${fileSizeConvert(fsize)} ↓</strong>
+                  <strong id="convertId_Img_${n}"></strong>
+                </small>
+              </div>
+            </div>`;
+
+            if (convertedImgSrc && n === input.files.length) {
+              document.getElementById('downloadImg_btn').disabled = false;
+              document.getElementById('clear_btn').disabled = false;
+              loader.style.display = 'none';
+              document.body.style.cursor = 'initial';
+            }
+
+            const convertImgSize = new XMLHttpRequest();
+            convertImgSize.open('GET', convertedImgSrc, true);
+            convertImgSize.responseType = 'arraybuffer';
+            convertImgSize.onreadystatechange = function () {
+              if (this.readyState === this.DONE) {
+                document.getElementById(`convertId_Img_${n}`).innerHTML = '<span style="opacity:0;">Size:</span>' + fileSizeConvert(this.response.byteLength);
+              }
+            };
+            convertImgSize.send(null);
+            readFile(n);
+          };
+        };
+        Files.readAsDataURL(file);
+      }
+      readFile(0);
+    }
+
+    function fileDownloadFunc(imgsrc, fileName) {
+      const baseString = imgsrc.substring(0, 4) !== 'data' ? imgsrc + baseString : imgsrc;
+      const a = document.createElement('a');
+      a.href = baseString;
+      a.download = fileName;
+      a.click();
+    }
+
+    function allImageDown_func() {
+      const imageSource = $('#appendImgConverted img');
+      imageSource.each(function (i) {
+        const n = i + 1;
+        const imgsrc = $(this).attr('src');
+        const fileName = $(this).attr('title');
+        fileDownloadFunc(imgsrc, fileName);
+      });
+    }
+
+    function singleImg_downFunc(n) {
+      const imgsrc = $(`#downloadImg_${n}`).children().attr('src');
+      const fileName = $(`#downloadImg_${n}`).children().attr('title');
+      fileDownloadFunc(imgsrc, fileName);
+    }
+  </script>
+</body>
+
+</html>
