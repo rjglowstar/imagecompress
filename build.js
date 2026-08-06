@@ -75,9 +75,16 @@ fs.mkdirSync(DIST, { recursive: true });
 let html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 
 const imgmin = fs.readFileSync(path.join(ROOT, 'imgmin.js'), 'utf8');
+const obfuscatedImgmin = obfuscate(imgmin, HOT_PATH, 'imgmin.js');
+// Each obfuscation pass injects its own top-level string-array decoder
+// helpers (e.g. K, p, Op). Without a private scope those collide with the
+// same-named helpers the inline script's own obfuscation pass injects,
+// since both run as plain (non-module) scripts sharing window. Wrapping in
+// an IIFE keeps them private; only Imgmin/jic are re-exposed on window.
 fs.writeFileSync(
   path.join(DIST, 'imgmin.js'),
-  BANNER + obfuscate(imgmin, HOT_PATH, 'imgmin.js')
+  BANNER + '(function(){' + obfuscatedImgmin +
+    '\nwindow.Imgmin=Imgmin;window.jic=jic;\n})();'
 );
 
 const inlineScript = /<script(?![^>]*\ssrc=)([^>]*)>([\s\S]*?)<\/script>/;
@@ -88,7 +95,7 @@ if (!match) {
 }
 const obfuscatedInline = obfuscate(match[2], UI, 'index.html inline script');
 html = html.replace(inlineScript, function () {
-  return '<script' + match[1] + '>' + obfuscatedInline + '</script>';
+  return '<script' + match[1] + '>(function(){' + obfuscatedInline + '\n})();</script>';
 });
 
 html = html.replace(/<!--(?!\[if)[\s\S]*?-->/g, '');
