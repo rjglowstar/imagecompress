@@ -14,6 +14,59 @@ var Imgmin = (function () {
     canvas.height = 0;
   }
 
+  var THUMB_MAX = 480;
+
+  function thumbSize(width, height) {
+    var scale = Math.min(1, THUMB_MAX / Math.max(width, height));
+    if (scale >= 1) return null;
+    return {
+      w: Math.max(1, Math.round(width * scale)),
+      h: Math.max(1, Math.round(height * scale))
+    };
+  }
+
+  function thumbFromSource(source, width, height) {
+    var size = thumbSize(width, height);
+    if (!size) return Promise.resolve(null);
+    var canvas = document.createElement('canvas');
+    canvas.width = size.w;
+    canvas.height = size.h;
+    var ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size.w, size.h);
+    ctx.drawImage(source, 0, 0, size.w, size.h);
+    return toBlob(canvas, MIME.jpeg, 0.82).then(function (blob) {
+      releaseCanvas(canvas);
+      return blob;
+    }, function () {
+      releaseCanvas(canvas);
+      return null;
+    });
+  }
+
+  function thumbFromBlob(blob, width, height) {
+    var size = thumbSize(width, height);
+    if (!size || typeof createImageBitmap !== 'function') return Promise.resolve(null);
+    return createImageBitmap(blob, {
+      resizeWidth: size.w, resizeHeight: size.h, resizeQuality: 'high'
+    }).then(function (bitmap) {
+      var canvas = document.createElement('canvas');
+      canvas.width = size.w;
+      canvas.height = size.h;
+      canvas.getContext('2d').drawImage(bitmap, 0, 0);
+      if (bitmap.close) bitmap.close();
+      return toBlob(canvas, MIME.jpeg, 0.82).then(function (out) {
+        releaseCanvas(canvas);
+        return out;
+      }, function () {
+        releaseCanvas(canvas);
+        return null;
+      });
+    }).catch(function () { return null; });
+  }
+
   var webpSupported = null;
   function supportsWebP() {
     if (webpSupported === null) {
@@ -434,6 +487,8 @@ var Imgmin = (function () {
         }
         ctx.drawImage(src.source, 0, 0);
 
+        var originalThumb = thumbFromSource(src.source, width, height);
+
         var encoded = format === 'png'
           ? encodePNG(canvas, ctx, quality, dither)
           : toBlob(canvas, MIME[format], quality / 100);
@@ -446,17 +501,25 @@ var Imgmin = (function () {
           var grew = blob.size >= file.size;
           var finalBlob = grew ? file : blob;
           var finalFormat = grew ? resolveFormat(file, 'auto') : format;
-          return {
-            blob: finalBlob,
-            url: URL.createObjectURL(finalBlob),
-            name: grew ? file.name : renameTo(file.name, format),
-            format: finalFormat,
-            width: width,
-            height: height,
-            size: finalBlob.size,
-            originalSize: file.size,
-            skipped: grew
-          };
+
+          return Promise.all([
+            originalThumb,
+            thumbFromBlob(finalBlob, width, height)
+          ]).then(function (thumbs) {
+            return {
+              blob: finalBlob,
+              url: URL.createObjectURL(finalBlob),
+              originalThumbUrl: thumbs[0] ? URL.createObjectURL(thumbs[0]) : null,
+              thumbUrl: thumbs[1] ? URL.createObjectURL(thumbs[1]) : null,
+              name: grew ? file.name : renameTo(file.name, format),
+              format: finalFormat,
+              width: width,
+              height: height,
+              size: finalBlob.size,
+              originalSize: file.size,
+              skipped: grew
+            };
+          });
         }, function (err) {
           releaseCanvas(canvas);
           canvas = null;

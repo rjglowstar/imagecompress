@@ -1434,6 +1434,20 @@
 
       function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 
+      // A result owns three object URLs: the full blob and two previews.
+      function trackEntryUrls(entry) {
+        trackUrl(entry.url);
+        if (entry.thumbUrl) trackUrl(entry.thumbUrl);
+        if (entry.originalThumbUrl) trackUrl(entry.originalThumbUrl);
+      }
+
+      function releaseEntryUrls(entry) {
+        if (!entry) return;
+        releaseUrl(entry.url);
+        releaseUrl(entry.thumbUrl);
+        releaseUrl(entry.originalThumbUrl);
+      }
+
       // Debounce handle for the viewer's quality slider, cancellable from the
       // pipeline so a pending re-encode cannot outlive the batch it belongs to.
       var vQualityTimer = null;
@@ -1528,7 +1542,7 @@
       function buildCard(file, index) {
         var root = el('div', 'resultCard');
         // Hidden until this image is given a quality of its own.
-        var tag = el('div', 'cardQualityTag custom', 'Quality ' + els.quality.value + '%');
+        var tag = el('div', 'cardQualityTag', 'Quality ' + els.quality.value + '%');
         tag.hidden = true;
         root.appendChild(tag);
         var row = el('div', 'row align-items-start g-3');
@@ -1536,18 +1550,15 @@
         var left = el('div', 'col-12 col-sm-6 col-lg-4');
         var originalWrap = el('div', 'imgWrapper checker');
         originalWrap.appendChild(el('span', 'paneLabel', 'Original'));
-        var originalImg = el('img');
-        var originalUrl = trackUrl(URL.createObjectURL(file));
-        originalImg.src = originalUrl;
-        originalImg.alt = file.name;
-        // Off screen cards are never decoded. With twenty large photos that is
-        // the difference between a responsive page and one that swaps.
-        originalImg.loading = 'lazy';
-        originalImg.decoding = 'async';
-        originalWrap.appendChild(originalImg);
+        originalWrap.appendChild(el('div', 'skeleton'));
         left.appendChild(originalWrap);
         left.appendChild(el('div', 'fileName mt-2', file.name));
         left.appendChild(el('div', 'fileMeta', formatBytes(file.size)));
+
+        // Full resolution handle for the viewer only. Creating the URL costs
+        // nothing; it is the decoding that is expensive, and that happens only
+        // when the comparison viewer actually opens.
+        var originalUrl = trackUrl(URL.createObjectURL(file));
 
         var mid = el('div', 'col-12 col-sm-6 col-lg-4');
         var outputWrap = el('div', 'imgWrapper checker');
@@ -1584,6 +1595,7 @@
           index: index,
           tag: tag,
           originalUrl: originalUrl,
+          originalWrap: originalWrap,
           outputWrap: outputWrap,
           outputMeta: outputMeta,
           saving: saving,
@@ -1615,16 +1627,26 @@
         card.downloadBtnOne.disabled = true;
       }
 
-      function fillCard(card, entry) {
-        card.entry = entry;
-        card.outputWrap.textContent = '';
-        card.outputWrap.appendChild(el('span', 'paneLabel', 'Compressed'));
+      // Cards show downscaled previews, never the full sized blobs. Seven
+      // 10350 x 3913 photos shown twice each would otherwise ask the browser to
+      // hold roughly two gigabytes of decoded pixels just to fill 160px boxes.
+      function setPreview(wrap, label, url, alt) {
+        wrap.textContent = '';
+        wrap.appendChild(el('span', 'paneLabel', label));
         var img = el('img');
-        img.src = entry.url;
-        img.alt = entry.name;
+        img.src = url;
+        img.alt = alt;
         img.loading = 'lazy';
         img.decoding = 'async';
-        card.outputWrap.appendChild(img);
+        wrap.appendChild(img);
+      }
+
+      function fillCard(card, entry) {
+        card.entry = entry;
+        setPreview(card.originalWrap, 'Original',
+          entry.originalThumbUrl || entry.originalUrl, entry.originalName || '');
+        setPreview(card.outputWrap, 'Compressed',
+          entry.thumbUrl || entry.url, entry.name);
 
         card.outputMeta.textContent =
           formatBytes(entry.size) + ' - ' + entry.format.toUpperCase() +
@@ -1683,10 +1705,10 @@
         var problem = '';
         try {
           var result = await Imgmin.compress(file, options);
-          if (stale()) { releaseUrl(result.url); return null; }
+          if (stale()) { releaseEntryUrls(result); return null; }
 
           var previous = state.results[index];
-          trackUrl(result.url);
+          trackEntryUrls(result);
           result.index = index;
           result.quality = quality;
           result.originalUrl = card.originalUrl;
@@ -1704,7 +1726,7 @@
             } else if (view.entry === previous) {
               closeViewer();
             }
-            releaseUrl(previous.url);
+            releaseEntryUrls(previous);
           }
         } catch (err) {
           if (stale()) return null;
@@ -1812,8 +1834,8 @@
 
           try {
             var result = await Imgmin.compress(files[i], options);
-            if (token !== state.run) { releaseUrl(result.url); return; }
-            trackUrl(result.url);
+            if (token !== state.run) { releaseEntryUrls(result); return; }
+            trackEntryUrls(result);
             result.index = i;
             result.quality = options.quality;
             result.originalUrl = card.originalUrl;
@@ -2090,9 +2112,12 @@
       }
 
       function openViewer(entry) {
+        // Always start from a clean slate. Reusing the previous image's zoom,
+        // pan and canvas contents is what made a new comparison flash the old
+        // one for a moment before settling.
+        resetView();
+        resetViewerSurfaces();
         view.entry = entry;
-        view.ready = false;
-        view.split = 0.5;
 
         renderViewerMeta(entry);
         setViewerBusy(false);
@@ -2123,14 +2148,46 @@
         });
       }
 
+      function viewerCanvases() {
+        return [els.canvasA, els.canvasB, els.canvasS, els.diffCanvas];
+      }
+
+      // Zeroing a canvas both wipes it and frees its backing store. Wiping
+      // matters as much as freeing: the old picture stays painted otherwise,
+      // and the next image flashes the previous one before its first frame.
+      function resetViewerSurfaces() {
+        viewerCanvases().forEach(function (canvas) {
+          canvas.width = 0;
+          canvas.height = 0;
+        });
+      }
+
+      function resetView() {
+        view.entry = null;
+        view.ready = false;
+        view.scale = 1;
+        view.fit = 1;
+        view.tx = 0;
+        view.ty = 0;
+        view.w = 0;
+        view.h = 0;
+        view.split = 0.5;
+        view.mode = 'side';
+      }
+
       function closeViewer() {
         if (els.viewer.hidden) return;
         els.viewer.hidden = true;
         document.body.style.overflow = '';
-        view.ready = false;
-        view.entry = null;
-        // Drop the decoded copies - these are full resolution and can be huge.
+
+        // Order matters: stop painting, then drop the pixels, then the sources.
+        resetView();
+        resetViewerSurfaces();
+        // Full resolution decodes, often over a hundred megabytes each.
         allImages().forEach(function (img) { img.removeAttribute('src'); });
+        setViewerBusy(false);
+        updateSplit();
+
         // Let the queue carry on where it left off.
         setPaused(false);
       }
