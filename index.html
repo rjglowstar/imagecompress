@@ -176,6 +176,358 @@
 
     @keyframes blink { 50% { opacity: .25; } }
 
+    .heroActions { margin-top: 14px; }
+
+    .heroActions .btn {
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 18px;
+      background: rgba(255, 255, 255, .7);
+      backdrop-filter: blur(6px);
+      color: #0d6efd;
+    }
+
+    /* ------------------------------------------------------ pair modal */
+
+    .pairModal {
+      position: fixed;
+      inset: 0;
+      z-index: 1070;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(20, 27, 43, .55);
+      backdrop-filter: blur(3px);
+      animation: fadeIn .18s ease both;
+    }
+
+    .pairModal[hidden] { display: none; }
+
+    @keyframes fadeIn { from { opacity: 0; } }
+
+    .pairPanel {
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 24px 60px rgba(14, 17, 23, .3);
+      animation: panelIn .22s cubic-bezier(.2, .8, .3, 1) both;
+    }
+
+    @keyframes panelIn { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+
+    .pairHead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .pairHead h2 {
+      font-size: 19px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .pairClose {
+      border: 0;
+      background: transparent;
+      font-size: 26px;
+      line-height: 1;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    .pairClose:hover { color: var(--ink); }
+
+    .pairDrop {
+      position: relative;
+      border: 2px dashed #c6d3ea;
+      border-radius: 14px;
+      padding: 22px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease;
+    }
+
+    .pairDrop strong { display: block; font-size: 15px; margin-bottom: 2px; }
+    .pairDrop:hover { border-color: var(--accent); background: #f7faff; }
+    .pairDrop.dragging { border-color: var(--accent); border-style: solid; background: #f2f7ff; }
+
+    .pairDrop input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pairSlots {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .pairSlot {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      position: relative;
+      min-height: 96px;
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+      animation: chipIn .25s ease both;
+    }
+
+    .pairSlot:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, .12);
+    }
+
+    .pairSlot.empty {
+      border-style: dashed;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      color: #a0abbe;
+    }
+
+    .pairSlot.empty:hover { background: #f7faff; }
+
+    .pairSlot .slotHint { font-size: 13px; font-weight: 500; }
+    .pairSlot .slotHintSub { font-size: 11px; color: #b3bccc; }
+
+    /* Dragging a file directly over one slot targets that slot. */
+    .pairSlot.over {
+      border-color: var(--accent);
+      border-style: solid;
+      background: #eef4ff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .16);
+    }
+
+    .pairSlot img {
+      width: 100%;
+      height: 80px;
+      object-fit: contain;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .pairSlot .slotName {
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 6px;
+      word-break: break-all;
+    }
+
+    .pairSlot .slotMeta { font-size: 11px; color: var(--muted); }
+
+    .pairSlot .slotDrop {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 0;
+      background: rgba(28, 35, 51, .68);
+      color: #fff;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .pairSlot .slotTag {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 20px;
+      padding: 2px 8px;
+    }
+
+    .pairNote {
+      font-size: 12px;
+      color: #c07800;
+      min-height: 18px;
+      margin-top: 10px;
+    }
+
+    .pairFoot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    /* ------------------------------------------------------ info modal */
+
+    .infoPanel {
+      max-width: 1120px;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .infoHead {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px 26px;
+      background: linear-gradient(180deg, #f7faff, #fff);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .infoThumb {
+      flex: 0 0 auto;
+      width: 68px;
+      height: 68px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .infoThumb[hidden] { display: none; }
+
+    .infoThumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .infoIdent { flex: 1 1 auto; min-width: 0; }
+
+    .infoIdent h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 3px;
+      word-break: break-all;
+    }
+
+    .infoChips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 9px;
+    }
+
+    .infoChip {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .02em;
+      background: #eef3ff;
+      color: #2352c8;
+      border: 1px solid #dbe5ff;
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+
+    .infoChip.good {
+      background: #e8f8ee;
+      color: #0d7a3d;
+      border-color: #cbebd8;
+    }
+
+    .infoChip.flat {
+      background: #f1f3f7;
+      color: #5a6478;
+      border-color: #e3e7ef;
+    }
+
+    /* Newspaper columns rather than one long list: the groups pack into the
+       width so the whole panel fits on screen without scrolling. Each group is
+       kept whole - a section split across a column break is unreadable. */
+    #infoBody {
+      column-count: 3;
+      column-gap: 16px;
+      padding: 20px 26px 4px;
+    }
+
+    .infoGroup {
+      break-inside: avoid;
+      -webkit-column-break-inside: avoid;
+      page-break-inside: avoid;
+      margin: 0 0 16px;
+      background: #f8fafd;
+      border: 1px solid #eaeef6;
+      border-radius: 12px;
+      padding: 12px 14px 11px;
+    }
+
+    .infoGroup h3 {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #7c879c;
+      margin: 0 0 9px;
+    }
+
+    /* Small accent bar instead of a full rule - lighter at this density. */
+    .infoGroup h3::before {
+      content: '';
+      width: 3px;
+      height: 12px;
+      border-radius: 3px;
+      background: var(--accent);
+      opacity: .55;
+    }
+
+    .infoRows {
+      display: grid;
+      grid-template-columns: minmax(84px, 42%) 1fr;
+      gap: 3px 12px;
+      font-size: 12.5px;
+      line-height: 1.4;
+    }
+
+    .infoKey { color: var(--muted); }
+
+    .infoVal {
+      color: var(--ink);
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    .infoPanel .pairFoot {
+      margin: 0;
+      padding: 14px 26px;
+      border-top: 1px solid var(--line);
+      background: #fbfcfe;
+      position: sticky;
+      bottom: 0;
+    }
+
+    @media(max-width:1023px) {
+      #infoBody { column-count: 2; }
+    }
+
+    @media(max-width:639px) {
+      #infoBody { column-count: 1; padding: 16px 18px 4px; }
+      .infoHead { padding: 16px 18px; }
+      .infoPanel .pairFoot { padding: 12px 18px; }
+      .infoThumb { width: 52px; height: 52px; }
+    }
+
     /* -------------------------------------------------------- dropzone */
 
     @property --angle {
@@ -668,8 +1020,65 @@
       line-height: 1.1;
     }
 
-    .saving.neutral { color: var(--muted); font-size: 18px; }
-    .saving.error { color: #d33a3a; font-size: 18px; }
+    .saving.neutral {
+      color: #5a6478;
+      font-size: 13px;
+      font-weight: 600;
+      background: #f1f3f7;
+      border: 1px solid #e3e7ef;
+      border-radius: 20px;
+      padding: 4px 12px;
+      display: inline-block;
+    }
+
+    .saving.error {
+      color: #b32d2d;
+      font-size: 13px;
+      font-weight: 600;
+      background: #fdeeee;
+      border: 1px solid #f6d6d6;
+      border-radius: 20px;
+      padding: 4px 12px;
+      display: inline-block;
+    }
+
+    .savingNote {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .03em;
+      color: var(--muted);
+      margin-top: 2px;
+      min-height: 14px;
+    }
+
+    .cardActions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 18px;
+    }
+
+    .cardActions .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .cardActions .btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+
+    .cardActions .btn-primary {
+      box-shadow: 0 3px 10px rgba(37, 99, 235, .25);
+    }
+
+    .cardActions .btn:disabled { opacity: .45; box-shadow: none; }
+
+    @media(max-width:991px) {
+      .cardActions { justify-content: flex-start; }
+    }
 
     .summary {
       font-size: 16px;
@@ -958,6 +1367,21 @@
 
     .vgroup { display: flex; gap: 4px; align-items: center; }
 
+    /* Link toggle: active means the two panes share one pan and zoom. */
+    .linkBtn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+    }
+
+    .linkBtn svg { width: 15px; height: 15px; }
+    .linkBtn .iconUnlinked { display: none; }
+    .linkBtn:not(.active) .iconLinked { display: none; }
+    .linkBtn:not(.active) .iconUnlinked { display: block; }
+    .linkBtn:not(.active) .linkText::after { content: ' off'; }
+    .linkBtn .linkText { font-size: 12px; }
+
     .vQualityGroup { gap: 8px; }
 
     .vLabel {
@@ -1055,6 +1479,44 @@
       pointer-events: none;
     }
 
+    /* A and B double as their own replace buttons, but only for a hand picked
+       pair. On a compression pair they stay disabled, and so inert, because B
+       there is an encode of A rather than a file anyone can swap out. */
+    button.paneTag {
+      border: 0;
+      color: inherit;
+      font-family: inherit;
+    }
+
+    button.paneTag:enabled {
+      pointer-events: auto;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background .15s;
+    }
+
+    button.paneTag:enabled::after {
+      content: 'replace';
+      opacity: .55;
+      border-left: 1px solid rgba(255, 255, 255, .3);
+      padding-left: 7px;
+    }
+
+    button.paneTag:enabled:hover { background: rgba(0, 0, 0, .88); }
+    button.paneTag:enabled:hover::after { opacity: 1; }
+
+    button.paneTag:enabled:focus-visible {
+      outline: 2px solid #4c8dff;
+      outline-offset: 2px;
+    }
+
+    .vSwapGroup[hidden] { display: none; }
+
+    /* Set apart from the A / B pair - it acts on both of them, not one. */
+    .switchBtn { margin-left: 10px; }
+
     #sideWrap { display: flex; flex: 1; gap: 2px; min-width: 0; }
     #sideWrap[hidden] { display: none; }
 
@@ -1140,6 +1602,12 @@
               <span class="pill">JPEG &middot; PNG &middot; WebP</span>
               <span class="pill">Pixel level compare</span>
             </div>
+
+            <div class="heroActions">
+              <button class="btn btn-outline-primary btn-sm" id="pairBtn" type="button">
+                Compare Images
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1204,6 +1672,13 @@
                   <span class="fileMeta d-block">smoother gradients, larger files</span>
                 </label>
               </div>
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" id="keepExif" checked>
+                <label class="form-check-label fileMeta" for="keepExif">
+                  Keep EXIF
+                  <span class="fileMeta d-block">camera, date and GPS stay in the file</span>
+                </label>
+              </div>
             </div>
 
             <!-- Nothing to download or clear until images are loaded, so this
@@ -1248,10 +1723,81 @@
     </div>
  
 
+  <!-- Pick any two images and compare them, independent of compression -->
+  <div class="pairModal" id="pairModal" hidden role="dialog" aria-modal="true"
+    aria-labelledby="pairTitle">
+    <div class="pairPanel">
+      <div class="pairHead">
+        <h2 id="pairTitle">Compare two images</h2>
+        <button class="pairClose" id="pairClose" type="button" aria-label="Close">&times;</button>
+      </div>
+
+      <p class="fileMeta mb-3">
+        Choose exactly two images. They open side by side sharing one zoom and pan,
+        so you can inspect them pixel for pixel.
+      </p>
+
+      <div class="pairDrop" id="pairDrop">
+        <input type="file" id="pairInput" accept="image/jpeg,image/png,image/webp" multiple>
+        <strong>Drop two images here</strong>
+        <span class="fileMeta">
+          or <label for="pairInput" class="browseLink">browse</label>
+          &middot; paste with Ctrl&nbsp;+&nbsp;V
+        </span>
+      </div>
+
+      <div class="pairSlots" id="pairSlots"></div>
+      <div class="pairNote" id="pairNote"></div>
+
+      <div class="pairFoot">
+        <button class="btn btn-outline-secondary" id="pairCancel" type="button">Cancel</button>
+        <button class="btn btn-primary" id="pairGo" type="button" disabled>Compare</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Everything the uploaded file itself carries -->
+  <div class="pairModal infoModal" id="infoModal" hidden role="dialog" aria-modal="true"
+    aria-labelledby="infoTitle">
+    <div class="pairPanel infoPanel">
+      <div class="infoHead">
+        <div class="infoThumb checker"><img id="infoThumb" alt=""></div>
+        <div class="infoIdent">
+          <h2 id="infoTitle">Image details</h2>
+          <div class="fileMeta" id="infoSub"></div>
+          <div class="infoChips" id="infoChips"></div>
+        </div>
+        <button class="pairClose" id="infoClose" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div id="infoBody"></div>
+      <div class="pairFoot">
+        <button class="btn btn-outline-secondary" id="infoCopy" type="button">Copy all</button>
+        <button class="btn btn-primary" id="infoDone" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Pixel level comparison viewer -->
   <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Compare original and compressed">
     <div class="viewerBar">
       <div class="viewerTitle" id="viewerTitle"></div>
+
+      <!-- Linked by default: both panes share one pan and zoom. -->
+      <button class="vbtn linkBtn active" id="linkBtn" type="button" aria-pressed="true"
+        title="Panes move together - click to move them separately">
+        <svg class="iconLinked" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </svg>
+        <svg class="iconUnlinked" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          <line x1="3" y1="3" x2="21" y2="21" />
+        </svg>
+        <span class="linkText">Linked</span>
+      </button>
 
       <div class="vgroup" role="group" aria-label="Comparison mode">
         <button class="vbtn" type="button" data-mode="side">Side by side</button>
@@ -1267,6 +1813,23 @@
         <span class="qBadge" id="vQualityValue">60</span>
         <span class="vStatus" id="vStatus"></span>
       </div>
+
+      <!-- Replaces one side of a hand picked pair in place, so a wrong pick
+           costs a single click instead of closing and choosing both again.
+           Shares the quality group's slot - a pair is never tunable, so the
+           two can never want the space at the same time. -->
+      <div class="vgroup vSwapGroup ms-5" id="swapGroup" hidden>
+        <span class="vLabel">Replace</span>
+        <button class="vbtn" type="button" id="swapA" title="Choose a different image for A">A</button>
+        <button class="vbtn" type="button" id="swapB" title="Choose a different image for B">B</button>
+        <button class="vbtn switchBtn" type="button" id="switchBtn"
+          title="Move each image to the other side (S)">&#8646;&nbsp; Switch</button>
+        <span class="vStatus" id="swapStatus"></span>
+      </div>
+
+      <!-- Outside the group on purpose: hiding the group must never take the
+           picker with it, since that is what opens the file dialog. -->
+      <input type="file" id="swapInput" accept="image/jpeg,image/png,image/webp" hidden>
 
       <div class="vgroup">
         <button class="vbtn" type="button" id="zoomOut" aria-label="Zoom out">&minus;</button>
@@ -1289,8 +1852,8 @@
 
     <div class="viewerBody" id="viewerBody">
       <div id="sideWrap">
-        <div class="pane" id="paneA"><span class="paneTag">Original</span><canvas id="canvasA"></canvas></div>
-        <div class="pane" id="paneB"><span class="paneTag">Compressed</span><canvas id="canvasB"></canvas></div>
+        <div class="pane" id="paneA"><button class="paneTag" id="tagA" type="button" disabled>Original</button><canvas id="canvasA"></canvas></div>
+        <div class="pane" id="paneB"><button class="paneTag" id="tagB" type="button" disabled>Compressed</button><canvas id="canvasB"></canvas></div>
       </div>
 
       <div class="pane" id="paneSlider" hidden>
@@ -1326,6 +1889,7 @@
         qualityValue: $('qualityValue'),
         qualityHint: $('qualityHint'),
         dither: $('dither'),
+        keepExif: $('keepExif'),
         settingActions: $('settingActions'),
         downloadBtn: $('downloadBtn'),
         clearBtn: $('clearBtn'),
@@ -1355,7 +1919,38 @@
         vQuality: $('vQuality'),
         vQualityValue: $('vQualityValue'),
         vQualityGroup: document.querySelector('.vQualityGroup'),
-        vStatus: $('vStatus')
+        vStatus: $('vStatus'),
+        tagA: $('tagA'),
+        tagB: $('tagB'),
+        linkBtn: $('linkBtn'),
+        swapGroup: $('swapGroup'),
+        swapA: $('swapA'),
+        swapB: $('swapB'),
+        switchBtn: $('switchBtn'),
+        swapInput: $('swapInput'),
+        swapStatus: $('swapStatus'),
+
+        pairBtn: $('pairBtn'),
+        pairModal: $('pairModal'),
+        pairDrop: $('pairDrop'),
+        pairInput: $('pairInput'),
+        pairSlots: $('pairSlots'),
+        pairNote: $('pairNote'),
+        pairGo: $('pairGo'),
+        pairCancel: $('pairCancel'),
+        pairClose: $('pairClose'),
+
+        infoModal: $('infoModal'),
+        infoTitle: $('infoTitle'),
+        infoSub: $('infoSub'),
+        infoThumb: $('infoThumb'),
+        infoThumbWrap: document.querySelector('.infoThumb'),
+        infoPanel: document.querySelector('.infoPanel'),
+        infoChips: $('infoChips'),
+        infoBody: $('infoBody'),
+        infoCopy: $('infoCopy'),
+        infoDone: $('infoDone'),
+        infoClose: $('infoClose')
       };
 
       // files:   the originals, kept so settings changes can re-run the job
@@ -1415,8 +2010,15 @@
       }
 
       function releaseUrls() {
-        state.urls.forEach(function (url) { URL.revokeObjectURL(url); });
+        // The pair modal's slot previews are tracked here too, but they belong
+        // to files the user picked by hand, not to any batch. A re-run must not
+        // revoke them out from under an open modal; closePairModal owns those.
+        var keep = (typeof pair !== 'undefined' && pair) ? pair.urls : [];
+        state.urls.forEach(function (url) {
+          if (keep.indexOf(url) === -1) URL.revokeObjectURL(url);
+        });
         state.urls.clear();
+        keep.forEach(function (url) { state.urls.add(url); });
       }
 
       function el(tag, className, text) {
@@ -1432,7 +2034,79 @@
         return new Promise(function (resolve) { setTimeout(resolve, ms); });
       }
 
+      var SVG_NS = 'http://www.w3.org/2000/svg';
+      var ICONS = {
+        compare: [['rect', { x: 3, y: 4, width: 8, height: 16, rx: 1.5 }],
+                  ['rect', { x: 13, y: 4, width: 8, height: 16, rx: 1.5 }]],
+        download: [['path', { d: 'M12 3v11' }], ['path', { d: 'M7.5 10.5 12 15l4.5-4.5' }],
+                   ['path', { d: 'M4 20h16' }]],
+        info: [['circle', { cx: 12, cy: 12, r: 8.5 }], ['path', { d: 'M12 11.2v5' }],
+               ['path', { d: 'M12 7.8v.15' }]]
+      };
+
+      function icon(name) {
+        var svg = document.createElementNS(SVG_NS, 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '1.9');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        svg.setAttribute('aria-hidden', 'true');
+        ICONS[name].forEach(function (part) {
+          var node = document.createElementNS(SVG_NS, part[0]);
+          Object.keys(part[1]).forEach(function (attr) {
+            node.setAttribute(attr, part[1][attr]);
+          });
+          svg.appendChild(node);
+        });
+        return svg;
+      }
+
+      function iconButton(className, iconName, label) {
+        var button = el('button', className);
+        button.type = 'button';
+        button.appendChild(icon(iconName));
+        button.appendChild(el('span', null, label));
+        return button;
+      }
+
       function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+      /* Settings are remembered between visits. Wrapped because storage throws
+       * outright in private windows and when a site is blocked from using it -
+       * losing preferences is not a reason to take the page down. */
+      var SETTINGS_KEY = 'imgcompress.settings';
+
+      function saveSettings() {
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+            quality: globalQuality(),
+            format: els.format.value,
+            dither: els.dither.checked,
+            keepExif: els.keepExif.checked
+          }));
+        } catch (e) { /* storage unavailable */ }
+      }
+
+      function loadSettings() {
+        var saved;
+        try { saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); }
+        catch (e) { saved = null; }
+        if (!saved) return;
+
+        if (typeof saved.quality === 'number' && saved.quality >= 5 && saved.quality <= 100) {
+          els.quality.value = saved.quality;
+        }
+        // Only accept a format the markup still offers.
+        if (saved.format && els.format.querySelector('option[value="' + saved.format + '"]')) {
+          els.format.value = saved.format;
+        }
+        els.dither.checked = !!saved.dither;
+        // Keep EXIF defaults to on, so a settings blob saved before this option
+        // existed must not silently turn it off.
+        els.keepExif.checked = saved.keepExif !== false;
+      }
 
       // A result owns three object URLs: the full blob and two previews.
       function trackEntryUrls(entry) {
@@ -1571,16 +2245,25 @@
         var right = el('div', 'col-12 col-lg-4 text-lg-center');
         var saving = el('div', 'saving neutral', '-');
         right.appendChild(saving);
+        // Sits under the figure to say what kind of saving it was, without
+        // pushing the number itself out of the way.
+        var savingNote = el('div', 'savingNote');
+        right.appendChild(savingNote);
 
-        var actions = el('div', 'mt-2');
-        var compareBtn = el('button', 'btn btn-sm btn-primary me-2', 'Compare');
-        compareBtn.type = 'button';
+        var actions = el('div', 'cardActions');
+        var compareBtn = iconButton('btn btn-sm btn-primary', 'compare', 'Compare');
         compareBtn.disabled = true;
-        var downloadBtnOne = el('button', 'btn btn-sm btn-outline-secondary', 'Download');
-        downloadBtnOne.type = 'button';
+        compareBtn.title = 'Open the pixel level comparison';
+        var downloadBtnOne = iconButton('btn btn-sm btn-outline-secondary', 'download', 'Download');
         downloadBtnOne.disabled = true;
+        downloadBtnOne.title = 'Save the compressed file';
+        // Reads the original file, so it works before compression finishes.
+        var infoBtn = iconButton('btn btn-sm btn-outline-secondary', 'info', 'Info');
+        infoBtn.title = 'Camera, dates and everything else stored in the file';
+        infoBtn.addEventListener('click', function () { openInfo(index); });
         actions.appendChild(compareBtn);
         actions.appendChild(downloadBtnOne);
+        actions.appendChild(infoBtn);
         right.appendChild(actions);
 
         // No quality control here on purpose - it lives in the comparison
@@ -1599,6 +2282,7 @@
           outputWrap: outputWrap,
           outputMeta: outputMeta,
           saving: saving,
+          savingNote: savingNote,
           compareBtn: compareBtn,
           downloadBtnOne: downloadBtnOne,
           entry: null
@@ -1641,6 +2325,47 @@
         wrap.appendChild(img);
       }
 
+      /* Three different outcomes hide behind "skipped", and calling them all
+       * "original kept" is wrong once metadata stripping can change the size:
+       *   - re-encoded smaller  -> the usual percentage
+       *   - original kept, but EXIF removed -> smaller file, identical pixels
+       *   - original kept whole -> genuinely nothing changed                */
+      function savingLabel(entry) {
+        var saved = entry.originalSize - entry.size;
+        var percent = Math.round((saved / entry.originalSize) * 100);
+
+        // Below 1% the percentage rounds to nothing useful, so the byte figure
+        // takes the headline and there is nothing left for the sub-line.
+        var showsPercent = percent >= 1;
+        var figure = showsPercent ? '-' + percent + '%' : '-' + formatBytes(saved);
+        var amount = showsPercent ? formatBytes(saved) + ' saved' : '';
+
+        if (!entry.skipped) {
+          return {
+            cls: 'saving',
+            text: figure,
+            note: amount,
+            title: formatBytes(entry.originalSize) + ' to ' + formatBytes(entry.size) +
+              ' - re-encoded at the chosen quality.'
+          };
+        }
+        if (saved > 0) {
+          return {
+            cls: 'saving',
+            text: figure,
+            note: amount ? amount + ' - metadata only' : 'metadata only',
+            title: 'Compressing made this file bigger, so the image data is untouched. ' +
+              'The saving is the EXIF that was stripped out.'
+          };
+        }
+        return {
+          cls: 'saving neutral',
+          text: 'original kept',
+          note: '',
+          title: 'Compressing made this file bigger, so the original is used unchanged.'
+        };
+      }
+
       function fillCard(card, entry) {
         card.entry = entry;
         setPreview(card.originalWrap, 'Original',
@@ -1652,15 +2377,12 @@
           formatBytes(entry.size) + ' - ' + entry.format.toUpperCase() +
           ' - ' + entry.width + ' x ' + entry.height;
 
-        if (entry.skipped) {
-          card.saving.className = 'saving neutral';
-          card.saving.textContent = 'original kept';
-          card.saving.title = 'Compressing made this file bigger, so the original is used.';
-        } else {
-          var percent = Math.round((1 - entry.size / entry.originalSize) * 100);
-          card.saving.className = 'saving';
-          card.saving.textContent = '-' + percent + '%';
-        }
+        var label = savingLabel(entry);
+        card.saving.className = label.cls;
+        card.saving.textContent = label.text;
+        card.saving.title = label.title;
+        card.savingNote.textContent = label.note;
+        card.savingNote.title = label.note ? label.title : '';
 
         card.compareBtn.disabled = false;
         card.downloadBtnOne.disabled = false;
@@ -1673,6 +2395,7 @@
         card.outputMeta.textContent = '';
         card.saving.className = 'saving error';
         card.saving.textContent = 'failed';
+        card.savingNote.textContent = '';
       }
 
       // Re-encode one file at its own quality, leaving every other card alone.
@@ -1698,7 +2421,8 @@
         var options = {
           quality: quality,
           format: els.format.value,
-          dither: els.dither.checked
+          dither: els.dither.checked,
+          keepExif: els.keepExif.checked
         };
 
         var entry = null;
@@ -1758,10 +2482,15 @@
         var before = 0, after = 0;
         done.forEach(function (r) { before += r.originalSize; after += r.size; });
         var percent = before ? Math.round((1 - after / before) * 100) : 0;
+        // The amount saved is the number people actually want; the percentage
+        // is context for it. A real but tiny saving must not read as none.
+        var verdict = after < before
+          ? 'saved ' + formatBytes(before - after) +
+            (percent > 0 ? ' (' + percent + '%)' : ' (under 1%)')
+          : 'no saving';
         els.summary.textContent =
           done.length + ' image' + (done.length === 1 ? '' : 's') + ': ' +
-          formatBytes(before) + ' to ' + formatBytes(after) +
-          ' (' + (percent > 0 ? 'saved ' + percent + '%' : 'no saving') + ')';
+          formatBytes(before) + ' to ' + formatBytes(after) + ' - ' + verdict;
       }
 
       /* ------------------------------------------------------- pipeline */
@@ -1771,6 +2500,9 @@
         // where the same index is a different photo entirely.
         cancelPendingRecompress();
         closeViewer();
+        // The details panel describes a result that is about to stop existing,
+        // and its preview points at a URL this is about to revoke.
+        closeInfo();
         releaseUrls();
         els.results.textContent = '';
         els.summary.textContent = '';
@@ -1780,11 +2512,19 @@
         updateActions();
       }
 
-      // The action block is hidden outright with no files loaded, and Download
-      // stays disabled until at least one image has finished.
+      // The action block is hidden outright with no files loaded. Download all
+      // waits for the whole batch, not the first result: enabling it mid run
+      // meant it quietly packed only the images finished so far, and with two
+      // files that subset was a single image, so it skipped the zip and saved
+      // one file under a button that promised all of them.
+      //
+      // progress.active is the batch flag. hideProgress clears it when the loop
+      // ends whether or not every file succeeded, so a failed image cannot
+      // leave the button stuck off - it enables with whatever did compress,
+      // next to cards that visibly say they failed.
       function updateActions() {
         els.settingActions.hidden = state.files.length === 0;
-        els.downloadBtn.disabled = doneResults().length === 0;
+        els.downloadBtn.disabled = progress.active || doneResults().length === 0;
       }
 
       function clearAll() {
@@ -1811,7 +2551,8 @@
         var options = {
           quality: parseInt(els.quality.value, 10),
           format: els.format.value,
-          dither: els.dither.checked
+          dither: els.dither.checked,
+          keepExif: els.keepExif.checked
         };
 
         // Cards are built up front so every file is visible immediately and
@@ -1868,17 +2609,45 @@
         document.body.removeChild(a);
       }
 
+      // One archive rather than a burst of separate downloads: browsers
+      // throttle or silently block those, and twenty loose files landing in
+      // the Downloads folder is nobody's idea of a result.
       async function downloadAll() {
-        // doneResults() skips the holes a failed image leaves behind.
         var ready = doneResults();
+        if (!ready.length) return;
+
+        // A single image in a zip is just an extra step for the user.
+        if (ready.length === 1) { downloadOne(ready[0]); return; }
+
+        var label = els.downloadBtn.textContent;
         els.downloadBtn.disabled = true;
-        for (var i = 0; i < ready.length; i++) {
-          downloadOne(ready[i]);
-          // Browsers throttle or block rapid consecutive downloads.
-          if (i < ready.length - 1) await sleep(250);
+        els.downloadBtn.textContent = 'Packing ' + ready.length + '...';
+
+        try {
+          var zipBlob = await Imgmin.zip(ready.map(function (entry) {
+            return { name: entry.name, blob: entry.blob };
+          }));
+          var url = URL.createObjectURL(zipBlob);
+          var a = el('a');
+          a.href = url;
+          a.download = 'compressed-images.zip';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          // Give the browser a moment to take hold of it before revoking.
+          setTimeout(function () { URL.revokeObjectURL(url); }, 20000);
+        } catch (err) {
+          // Falling back beats failing: the files are still what matters.
+          els.downloadBtn.textContent = 'Zip failed - sending files';
+          for (var i = 0; i < ready.length; i++) {
+            downloadOne(ready[i]);
+            if (i < ready.length - 1) await sleep(250);
+          }
         }
-        // Not a blanket re-enable: if Clear ran while downloads were spacing
-        // out, the button must stay disabled.
+
+        els.downloadBtn.textContent = label;
+        // Not a blanket re-enable: if Clear ran while packing, the button must
+        // stay disabled.
         updateActions();
       }
 
@@ -1886,10 +2655,28 @@
 
       // One shared transform drives every pane, which is exactly what makes
       // the original and the compressed view stay pixel aligned while zooming.
+      /* Each pane owns its own pan and zoom. While linked the two are kept
+       * identical, which is the normal way to compare; unlinking lets one be
+       * moved on its own, for lining up two pictures that do not start in the
+       * same place. */
       var view = {
-        entry: null, mode: 'side', scale: 1, fit: 1,
-        tx: 0, ty: 0, w: 0, h: 0, split: 0.5, ready: false
+        entry: null, mode: 'side', fit: 1, linked: true,
+        w: 0, h: 0, split: 0.5, ready: false,
+        a: { tx: 0, ty: 0, scale: 1 },
+        b: { tx: 0, ty: 0, scale: 1 }
       };
+
+      function bothTransforms() { return [view.a, view.b]; }
+
+      // Which transforms a gesture on this pane should move. Slider and
+      // difference overlay both images in one pane, so a gesture there can only
+      // sensibly move both.
+      function transformsFor(pane) {
+        if (view.linked) return bothTransforms();
+        if (pane === els.paneA) return [view.a];
+        if (pane === els.paneB) return [view.b];
+        return bothTransforms();
+      }
 
       function activePane() {
         if (view.mode === 'slider') return els.paneSlider;
@@ -1910,24 +2697,41 @@
 
       // Copies the visible slice of one image into ctx. Returns false when
       // the image is entirely off screen.
-      function drawSlice(ctx, img, dpr, paneW, paneH) {
+      function drawSlice(ctx, img, dpr, paneW, paneH, t) {
         if (!img || !img.naturalWidth) return false;
 
-        var left = Math.max(0, view.tx);
-        var top = Math.max(0, view.ty);
-        var right = Math.min(paneW, view.tx + view.w * view.scale);
-        var bottom = Math.min(paneH, view.ty + view.h * view.scale);
+        // Bounds come from this image, not from the shared frame. Original and
+        // compressed always match, but two files picked by hand need not, and
+        // using the frame would stretch or clip whichever is smaller.
+        var iw = img.naturalWidth, ih = img.naturalHeight;
+
+        // Each image is centred within the shared frame. Without this the
+        // smaller of two differently sized pictures hangs off the top left
+        // corner of the larger while its pane looks half empty.
+        var ox = t.tx + ((view.w - iw) / 2) * t.scale;
+        var oy = t.ty + ((view.h - ih) / 2) * t.scale;
+
+        var left = Math.max(0, ox);
+        var top = Math.max(0, oy);
+        var right = Math.min(paneW, ox + iw * t.scale);
+        var bottom = Math.min(paneH, oy + ih * t.scale);
         if (right <= left || bottom <= top) return false;
 
-        var sx = (left - view.tx) / view.scale;
-        var sy = (top - view.ty) / view.scale;
-        var sw = (right - left) / view.scale;
-        var sh = (bottom - top) / view.scale;
+        var sx = (left - ox) / t.scale;
+        var sy = (top - oy) / t.scale;
+        var sw = (right - left) / t.scale;
+        var sh = (bottom - top) / t.scale;
 
         // Rounding can push the source rect a hair past the edge, which throws.
-        sw = Math.min(sw, view.w - sx);
-        sh = Math.min(sh, view.h - sy);
+        sw = Math.min(sw, iw - sx);
+        sh = Math.min(sh, ih - sy);
         if (sw <= 0 || sh <= 0) return false;
+
+        // Set per image, since the two panes can now be at different zooms.
+        // Past 1:1 the browser has to invent pixels, and nearest neighbour keeps
+        // the real pixel grid visible so artefacts stay honest.
+        ctx.imageSmoothingEnabled = t.scale < 1.5;
+        ctx.imageSmoothingQuality = 'high';
 
         ctx.drawImage(
           img, sx, sy, sw, sh,
@@ -1948,10 +2752,6 @@
         var ctx = canvas.getContext('2d');
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, cw, ch);
-        // Past 1:1 the browser has to invent pixels. Nearest neighbour keeps
-        // the real pixel grid visible so compression artefacts stay honest.
-        ctx.imageSmoothingEnabled = view.scale < 1.5;
-        ctx.imageSmoothingQuality = 'high';
         draw(ctx, w, h, dpr);
       }
 
@@ -1959,21 +2759,24 @@
         if (!view.ready) return;
 
         if (view.mode === 'side') {
-          paint(els.canvasA, function (ctx, w, h, dpr) { drawSlice(ctx, els.imgA, dpr, w, h); });
-          paint(els.canvasB, function (ctx, w, h, dpr) { drawSlice(ctx, els.imgB, dpr, w, h); });
+          paint(els.canvasA, function (ctx, w, h, dpr) {
+            drawSlice(ctx, els.imgA, dpr, w, h, view.a);
+          });
+          paint(els.canvasB, function (ctx, w, h, dpr) {
+            drawSlice(ctx, els.imgB, dpr, w, h, view.b);
+          });
           return;
         }
 
         if (view.mode === 'slider') {
           paint(els.canvasS, function (ctx, w, h, dpr) {
-            drawSlice(ctx, els.imgB, dpr, w, h);
-            // Original on top, clipped to the handle position. Both come from
-            // the same transform, so they line up exactly.
+            drawSlice(ctx, els.imgB, dpr, w, h, view.b);
+            // Original on top, clipped to the handle position.
             ctx.save();
             ctx.beginPath();
             ctx.rect(0, 0, view.split * w * dpr, h * dpr);
             ctx.clip();
-            drawSlice(ctx, els.imgA, dpr, w, h);
+            drawSlice(ctx, els.imgA, dpr, w, h, view.a);
             ctx.restore();
           });
           return;
@@ -1982,19 +2785,24 @@
         paint(els.diffCanvas, function (ctx, w, h, dpr) {
           ctx.fillStyle = '#000';
           ctx.fillRect(0, 0, w * dpr, h * dpr);
-          drawSlice(ctx, els.imgA, dpr, w, h);
+          drawSlice(ctx, els.imgA, dpr, w, h, view.a);
           // 'difference' leaves black wherever the two agree, so anything
           // visible is exactly what compression changed.
           ctx.globalCompositeOperation = 'difference';
-          drawSlice(ctx, els.imgB, dpr, w, h);
+          drawSlice(ctx, els.imgB, dpr, w, h, view.b);
           ctx.globalCompositeOperation = 'source-over';
         });
       }
 
       function applyView() {
-        els.zoomLabel.textContent = Math.round(view.scale * 100) + '%';
-        $('zoomOut').disabled = view.scale <= view.fit * 1.001;
-        $('zoomIn').disabled = view.scale >= 39.99;
+        var sa = Math.round(view.a.scale * 100);
+        var sb = Math.round(view.b.scale * 100);
+        // Only worth showing both numbers when they have actually drifted apart.
+        els.zoomLabel.textContent = sa === sb ? sa + '%' : sa + '% / ' + sb + '%';
+
+        $('zoomOut').disabled =
+          view.a.scale <= view.fit * 1.001 && view.b.scale <= view.fit * 1.001;
+        $('zoomIn').disabled = view.a.scale >= 39.99 && view.b.scale >= 39.99;
         updateSplit();
         renderPanes();
       }
@@ -2021,36 +2829,69 @@
         return Math.min(pw / view.w, ph / view.h);
       }
 
+      // Fit puts both panes back on the same view, whether linked or not.
       function fitToPane() {
         var pane = activePane();
         var pw = pane.clientWidth, ph = pane.clientHeight;
         if (!pw || !ph || !view.w) return;
         view.fit = computeFit();
-        view.scale = view.fit;
-        view.tx = (pw - view.w * view.scale) / 2;
-        view.ty = (ph - view.h * view.scale) / 2;
+        bothTransforms().forEach(function (t) {
+          t.scale = view.fit;
+          t.tx = (pw - view.w * t.scale) / 2;
+          t.ty = (ph - view.h * t.scale) / 2;
+        });
         applyView();
       }
 
-      function zoomTo(nextScale, cx, cy) {
+      // Keeps the point under (cx, cy) pinned while the scale changes.
+      function zoomTransform(t, next, cx, cy) {
+        next = clamp(next, view.fit, 40);
+        if (next === t.scale) return false;
+        t.tx = cx - (cx - t.tx) * (next / t.scale);
+        t.ty = cy - (cy - t.ty) * (next / t.scale);
+        t.scale = next;
+        return true;
+      }
+
+      function zoomCentre(cx, cy) {
+        if (cx !== undefined) return { x: cx, y: cy };
         var pane = activePane();
-        var pw = pane.clientWidth, ph = pane.clientHeight;
-        if (cx === undefined) { cx = pw / 2; cy = ph / 2; }
-        var next = clamp(nextScale, view.fit, 40);
-        if (next === view.scale) return;
-        view.tx = cx - (cx - view.tx) * (next / view.scale);
-        view.ty = cy - (cy - view.ty) * (next / view.scale);
-        view.scale = next;
-        scheduleView();
+        return { x: pane.clientWidth / 2, y: pane.clientHeight / 2 };
+      }
+
+      // Relative zoom. Applied per transform, so two panes at different zooms
+      // stay proportionally apart instead of snapping together.
+      function zoomBy(factor, cx, cy, list) {
+        var at = zoomCentre(cx, cy);
+        var changed = false;
+        (list || bothTransforms()).forEach(function (t) {
+          if (zoomTransform(t, t.scale * factor, at.x, at.y)) changed = true;
+        });
+        if (changed) scheduleView();
+      }
+
+      // Absolute zoom, for Fit / 1:1 / 400%.
+      function zoomAbs(scale, cx, cy, list) {
+        var at = zoomCentre(cx, cy);
+        var changed = false;
+        (list || bothTransforms()).forEach(function (t) {
+          if (zoomTransform(t, scale, at.x, at.y)) changed = true;
+        });
+        if (changed) scheduleView();
       }
 
       function setMode(mode) {
         var pane = activePane();
         var oldW = pane.clientWidth, oldH = pane.clientHeight;
-        // Remember the image point at the centre so switching mode does not
-        // jump to a different part of the picture.
-        var centreX = (oldW / 2 - view.tx) / view.scale;
-        var centreY = (oldH / 2 - view.ty) / view.scale;
+        // Remember the image point at the centre of each pane so switching mode
+        // does not jump to a different part of the picture.
+        var centres = bothTransforms().map(function (t) {
+          return {
+            t: t,
+            x: (oldW / 2 - t.tx) / t.scale,
+            y: (oldH / 2 - t.ty) / t.scale
+          };
+        });
 
         view.mode = mode;
         els.sideWrap.hidden = mode !== 'side';
@@ -2064,28 +2905,60 @@
 
         var next = activePane();
         view.fit = computeFit();
-        if (view.scale < view.fit) { fitToPane(); return; }
-        view.tx = next.clientWidth / 2 - centreX * view.scale;
-        view.ty = next.clientHeight / 2 - centreY * view.scale;
+        if (view.a.scale < view.fit || view.b.scale < view.fit) { fitToPane(); return; }
+        centres.forEach(function (c) {
+          c.t.tx = next.clientWidth / 2 - c.x * c.t.scale;
+          c.t.ty = next.clientHeight / 2 - c.y * c.t.scale;
+        });
         applyView();
       }
 
       function renderViewerMeta(entry) {
-        els.viewerTitle.textContent = entry.originalName || entry.name;
-        var savedPercent = entry.skipped
-          ? 'original kept'
-          : Math.round((1 - entry.size / entry.originalSize) * 100) + '% smaller';
+        var isPair = entry.kind === 'pair';
+
+        els.viewerTitle.textContent = isPair
+          ? entry.originalName + '  vs  ' + entry.name
+          : (entry.originalName || entry.name);
+
+        els.tagA.textContent = isPair ? 'A - ' + entry.originalName : 'Original';
+        els.tagB.textContent = isPair ? 'B - ' + entry.name : 'Compressed';
+
+        // Only a hand picked pair has two swappable files behind it. Disabled
+        // rather than restyled, so the tag is also unreachable by keyboard.
+        els.tagA.disabled = !isPair;
+        els.tagB.disabled = !isPair;
+        els.tagA.title = isPair ? 'Click to replace image A' : '';
+        els.tagB.title = isPair ? 'Click to replace image B' : '';
+
+        var rows;
+        if (isPair) {
+          var delta = entry.size - entry.originalSize;
+          var sameSize = entry.sizeA.w === entry.sizeB.w && entry.sizeA.h === entry.sizeB.h;
+          rows = [
+            ['A', formatBytes(entry.originalSize) + '  ' + entry.sizeA.w + ' x ' + entry.sizeA.h],
+            ['B', formatBytes(entry.size) + '  ' + entry.sizeB.w + ' x ' + entry.sizeB.h],
+            ['Difference', (delta === 0 ? 'same size' :
+              (delta < 0 ? formatBytes(-delta) + ' smaller' : formatBytes(delta) + ' larger'))],
+            // Difference mode only means anything when the two line up.
+            ['Dimensions', sameSize ? 'identical' : 'different - each is centred in its pane'],
+            ['Tip', 'scroll to zoom, drag to pan, double click for 1:1']
+          ];
+        } else {
+          rows = [
+            ['Original', formatBytes(entry.originalSize)],
+            ['Compressed', formatBytes(entry.size) + ' (' + entry.format.toUpperCase() + ')'],
+            ['Result', entry.skipped ? 'original kept'
+              : Math.round((1 - entry.size / entry.originalSize) * 100) + '% smaller'],
+            ['Pixels', entry.width + ' x ' + entry.height],
+            ['Tip', 'scroll to zoom, drag to pan, double click for 1:1']
+          ];
+        }
+
         els.viewerFoot.textContent = '';
-        [
-          ['Original', formatBytes(entry.originalSize)],
-          ['Compressed', formatBytes(entry.size) + ' (' + entry.format.toUpperCase() + ')'],
-          ['Result', savedPercent],
-          ['Pixels', entry.width + ' x ' + entry.height],
-          ['Tip', 'scroll to zoom, drag to pan, double click for 1:1']
-        ].forEach(function (pair) {
+        rows.forEach(function (row) {
           var span = el('span');
-          span.appendChild(el('strong', null, pair[0] + ': '));
-          span.appendChild(document.createTextNode(pair[1]));
+          span.appendChild(el('strong', null, row[0] + ': '));
+          span.appendChild(document.createTextNode(row[1]));
           els.viewerFoot.appendChild(span);
         });
       }
@@ -2138,15 +3011,196 @@
         els.vQualityGroup.hidden = !tunable;
         if (tunable) syncQualityUI(entry.index);
 
-        Promise.all(allImages().map(function (img) {
+        // Swapping a side only means anything when both sides are real files.
+        els.swapGroup.hidden = entry.kind !== 'pair';
+        els.swapStatus.textContent = '';
+
+        // Returned so a swap can restore zoom and pan once the new decode has
+        // settled - fitToPane below would otherwise undo it.
+        return Promise.all(allImages().map(function (img) {
           return img.decode ? img.decode().catch(function () {}) : Promise.resolve();
         })).then(function () {
-          view.w = els.imgA.naturalWidth || entry.width;
-          view.h = els.imgA.naturalHeight || entry.height;
+          // The frame spans whichever image is larger, so a hand picked pair of
+          // different sizes still fits with neither one clipped.
+          view.w = Math.max(els.imgA.naturalWidth || 0, els.imgB.naturalWidth || 0)
+            || entry.width;
+          view.h = Math.max(els.imgA.naturalHeight || 0, els.imgB.naturalHeight || 0)
+            || entry.height;
           view.ready = true;
           fitToPane();
         });
       }
+
+      /* ------------------------------ replace one side of a hand picked pair */
+
+      // A pair is two independent picks, so getting one of them wrong should
+      // cost one click rather than a close, reopen and re-pick of both. The
+      // side that stays keeps its blob and its URL untouched.
+      var swapSide = null;   // which slot the open picker is filling
+
+      // Reopens the viewer on a rebuilt pair. openViewer begins with resetView,
+      // so anything worth carrying over has to be snapshotted here and put back
+      // once the new decode has settled.
+      //
+      // Mode, link and slider position always carry over - they are choices
+      // about the workspace, not about the picture. Zoom and pan only carry
+      // over for opts.keepView, because they mean something on the same image
+      // and nothing at all on a different one.
+      //   opts.keepView - put the old zoom and pan back
+      //   opts.flip     - the two images changed sides, so their pans follow
+      //                   them; only visible when the panes are unlinked
+      async function reopenPair(next, opts) {
+        opts = opts || {};
+        var keep = {
+          mode: view.mode, linked: view.linked, split: view.split,
+          w: view.w, h: view.h,
+          a: { tx: view.a.tx, ty: view.a.ty, scale: view.a.scale },
+          b: { tx: view.b.tx, ty: view.b.ty, scale: view.b.scale }
+        };
+
+        await openViewer(next);
+
+        // Closed while the new decode was in flight, so there is no longer a
+        // view to put back - and measuring a hidden pane would only give zeros.
+        if (els.viewer.hidden) return;
+
+        if (keep.mode !== view.mode) setMode(keep.mode);
+        setLinked(keep.linked, true);
+        view.split = keep.split;
+        updateSplit();
+
+        // openViewer has already fitted the new image, which is where a
+        // replacement should land. A different sized image moves everything
+        // too, so even a kept view has to give way to the fit.
+        var restore = opts.keepView && view.w === keep.w && view.h === keep.h;
+        if (restore) {
+          var a = opts.flip ? keep.b : keep.a;
+          var b = opts.flip ? keep.a : keep.b;
+          view.a.tx = a.tx; view.a.ty = a.ty; view.a.scale = a.scale;
+          view.b.tx = b.tx; view.b.ty = b.ty; view.b.scale = b.scale;
+        }
+        applyView();
+      }
+
+      // Sends each image to the other side. Nothing is decoded again and no
+      // blob is touched - only which pane points at which of the two. The zoom
+      // and pan stay put: it is the same detail of the same two pictures, just
+      // viewed from the other side, which is the whole reason to switch.
+      function switchSides() {
+        var entry = view.entry;
+        if (!entry || entry.kind !== 'pair') return;
+
+        return reopenPair({
+          kind: 'pair',
+          originalUrl:  entry.url,
+          url:          entry.originalUrl,
+          originalName: entry.name,
+          name:         entry.originalName,
+          originalSize: entry.size,
+          size:         entry.originalSize,
+          sizeA:        entry.sizeB,
+          sizeB:        entry.sizeA,
+          // The frame spans the larger of the two, so a switch cannot change it.
+          width:  entry.width,
+          height: entry.height
+        }, { keepView: true, flip: true });
+      }
+
+      function requestSwap(side) {
+        if (!view.entry || view.entry.kind !== 'pair') return;
+        swapSide = side;
+        els.swapInput.value = '';
+        els.swapInput.click();
+      }
+
+      async function applySwap(list, side) {
+        var entry = view.entry;
+        if (!entry || entry.kind !== 'pair') return;
+
+        var picked = imagesOnly(list);
+        if (!picked.length) {
+          els.swapStatus.textContent = 'Not an image this tool can read.';
+          return;
+        }
+
+        var file = picked[0];
+        els.swapStatus.textContent = 'Loading...';
+
+        var url = trackUrl(URL.createObjectURL(file));
+        var size = await decodeSize(url);
+
+        // The viewer can be closed, or a second swap can land, while that
+        // decode is in flight. Carrying on would reopen a viewer the user just
+        // closed, and paint a blob that closing had already revoked.
+        if (view.entry !== entry) {
+          releaseUrl(url);
+          return;
+        }
+
+        if (!size.w) {
+          releaseUrl(url);
+          els.swapStatus.textContent = 'That image could not be decoded.';
+          return;
+        }
+
+        var replaced = side === 0 ? entry.originalUrl : entry.url;
+        var next = {
+          kind: 'pair',
+          originalUrl:  side === 0 ? url       : entry.originalUrl,
+          url:          side === 1 ? url       : entry.url,
+          originalName: side === 0 ? file.name : entry.originalName,
+          name:         side === 1 ? file.name : entry.name,
+          originalSize: side === 0 ? file.size : entry.originalSize,
+          size:         side === 1 ? file.size : entry.size,
+          sizeA:        side === 0 ? size      : entry.sizeA,
+          sizeB:        side === 1 ? size      : entry.sizeB
+        };
+        // The frame spans the larger of the two, exactly as a fresh pair does.
+        next.width  = Math.max(next.sizeA.w, next.sizeB.w);
+        next.height = Math.max(next.sizeA.h, next.sizeB.h);
+
+        // No keepView: a replacement is a different picture, so it opens fitted
+        // rather than at whatever corner the previous one was zoomed into.
+        await reopenPair(next);
+
+        // Only once the replacement is decoded and painted. Revoking earlier
+        // can blank the pane on a slow decode.
+        releaseUrl(replaced);
+
+        els.swapStatus.textContent = '';
+      }
+
+      // Both of these are async underneath. Without a catch a rejection would
+      // surface only as an unhandled promise, leaving the status stuck on
+      // "Loading..." with no hint that anything went wrong.
+      function reportSwapFailure() {
+        els.swapStatus.textContent = 'That image could not be loaded.';
+      }
+
+      els.swapInput.addEventListener('change', function (event) {
+        var side = swapSide;
+        swapSide = null;
+        if (side !== null) applySwap(event.target.files, side).catch(reportSwapFailure);
+        event.target.value = '';
+      });
+
+      els.swapA.addEventListener('click', function () { requestSwap(0); });
+      els.swapB.addEventListener('click', function () { requestSwap(1); });
+      els.switchBtn.addEventListener('click', function () {
+        var running = switchSides();
+        if (running) running.catch(reportSwapFailure);
+      });
+
+      // The tags sit inside the panes, so their press must not also start a pan.
+      [[els.tagA, 0], [els.tagB, 1]].forEach(function (pair) {
+        pair[0].addEventListener('pointerdown', function (event) {
+          event.stopPropagation();
+        });
+        pair[0].addEventListener('click', function (event) {
+          event.stopPropagation();
+          requestSwap(pair[1]);
+        });
+      });
 
       function viewerCanvases() {
         return [els.canvasA, els.canvasB, els.canvasS, els.diffCanvas];
@@ -2165,20 +3219,47 @@
       function resetView() {
         view.entry = null;
         view.ready = false;
-        view.scale = 1;
         view.fit = 1;
-        view.tx = 0;
-        view.ty = 0;
         view.w = 0;
         view.h = 0;
         view.split = 0.5;
         view.mode = 'side';
+        bothTransforms().forEach(function (t) {
+          t.tx = 0; t.ty = 0; t.scale = 1;
+        });
+        setLinked(true, true);
+      }
+
+      // Linking snaps B onto A, because "linked" has to mean one shared view -
+      // leaving them apart would make the next drag jump.
+      function setLinked(on, quiet) {
+        view.linked = on;
+        els.linkBtn.classList.toggle('active', on);
+        els.linkBtn.setAttribute('aria-pressed', String(on));
+        els.linkBtn.title = on
+          ? 'Panes move together - click to move them separately'
+          : 'Panes move separately - click to link them';
+
+        if (on) {
+          view.b.tx = view.a.tx;
+          view.b.ty = view.a.ty;
+          view.b.scale = view.a.scale;
+          if (!quiet) scheduleView();
+        }
       }
 
       function closeViewer() {
         if (els.viewer.hidden) return;
         els.viewer.hidden = true;
         document.body.style.overflow = '';
+
+        // A hand picked pair has no card holding on to it, so this is the only
+        // place its two blobs can be released.
+        var closing = view.entry;
+
+        // A picker left open over the closing viewer must not land its file on
+        // whatever pair is opened next.
+        swapSide = null;
 
         // Order matters: stop painting, then drop the pixels, then the sources.
         resetView();
@@ -2187,6 +3268,11 @@
         allImages().forEach(function (img) { img.removeAttribute('src'); });
         setViewerBusy(false);
         updateSplit();
+
+        if (closing && closing.kind === 'pair') {
+          releaseUrl(closing.originalUrl);
+          releaseUrl(closing.url);
+        }
 
         // Let the queue carry on where it left off.
         setPaused(false);
@@ -2204,14 +3290,16 @@
           event.preventDefault();
           var rect = paneFromEvent(event).getBoundingClientRect();
           var factor = Math.pow(1.0015, -event.deltaY);
-          zoomTo(view.scale * factor, event.clientX - rect.left, event.clientY - rect.top);
+          zoomBy(factor, event.clientX - rect.left, event.clientY - rect.top,
+            transformsFor(pane));
         }, { passive: false });
 
         pane.addEventListener('dblclick', function (event) {
           if (!view.ready) return;
           var rect = paneFromEvent(event).getBoundingClientRect();
-          var target = view.scale >= 1 ? view.fit : 1;
-          zoomTo(target, event.clientX - rect.left, event.clientY - rect.top);
+          var list = transformsFor(pane);
+          var target = list[0].scale >= 1 ? view.fit : 1;
+          zoomAbs(target, event.clientX - rect.left, event.clientY - rect.top, list);
         });
 
         var dragging = false, lastX = 0, lastY = 0, pointerId = null;
@@ -2232,8 +3320,9 @@
         pane.addEventListener('pointermove', function (event) {
           if (!dragging || event.pointerId !== pointerId) return;
           event.preventDefault();
-          view.tx += event.clientX - lastX;
-          view.ty += event.clientY - lastY;
+          var dx = event.clientX - lastX;
+          var dy = event.clientY - lastY;
+          transformsFor(pane).forEach(function (t) { t.tx += dx; t.ty += dy; });
           lastX = event.clientX;
           lastY = event.clientY;
           scheduleView();
@@ -2307,12 +3396,14 @@
         vQualityTimer = setTimeout(function () { recompressOne(index); }, 450);
       });
 
-      $('zoomIn').addEventListener('click', function () { zoomTo(view.scale * 1.5); });
-      $('zoomOut').addEventListener('click', function () { zoomTo(view.scale / 1.5); });
+      $('zoomIn').addEventListener('click', function () { zoomBy(1.5); });
+      $('zoomOut').addEventListener('click', function () { zoomBy(1 / 1.5); });
       $('zoomFit').addEventListener('click', fitToPane);
-      $('zoomActual').addEventListener('click', function () { zoomTo(1); });
-      $('zoom400').addEventListener('click', function () { zoomTo(4); });
+      $('zoomActual').addEventListener('click', function () { zoomAbs(1); });
+      $('zoom400').addEventListener('click', function () { zoomAbs(4); });
       $('viewerClose').addEventListener('click', closeViewer);
+
+      els.linkBtn.addEventListener('click', function () { setLinked(!view.linked); });
 
       document.addEventListener('keydown', function (event) {
         if (els.viewer.hidden) return;
@@ -2320,16 +3411,24 @@
         // panning.
         if (event.target === els.vQuality && event.key !== 'Escape') return;
         var step = 60;
+        // The keyboard has no pane under a cursor, so it always moves both.
+        function pan(dx, dy) {
+          bothTransforms().forEach(function (t) { t.tx += dx; t.ty += dy; });
+          applyView();
+        }
         switch (event.key) {
           case 'Escape': closeViewer(); break;
-          case '+': case '=': zoomTo(view.scale * 1.5); break;
-          case '-': case '_': zoomTo(view.scale / 1.5); break;
+          case '+': case '=': zoomBy(1.5); break;
+          case '-': case '_': zoomBy(1 / 1.5); break;
           case '0': fitToPane(); break;
-          case '1': zoomTo(1); break;
-          case 'ArrowLeft': view.tx += step; applyView(); break;
-          case 'ArrowRight': view.tx -= step; applyView(); break;
-          case 'ArrowUp': view.ty += step; applyView(); break;
-          case 'ArrowDown': view.ty -= step; applyView(); break;
+          case '1': zoomAbs(1); break;
+          case 'l': case 'L': setLinked(!view.linked); break;
+          // Ignored on a compression pair, where the sides are not interchangeable.
+          case 's': case 'S': els.switchBtn.click(); break;
+          case 'ArrowLeft': pan(step, 0); break;
+          case 'ArrowRight': pan(-step, 0); break;
+          case 'ArrowUp': pan(0, step); break;
+          case 'ArrowDown': pan(0, -step); break;
           default: return;
         }
         event.preventDefault();
@@ -2338,7 +3437,7 @@
       window.addEventListener('resize', function () {
         if (els.viewer.hidden || !view.ready) return;
         view.fit = computeFit();
-        if (view.scale < view.fit) fitToPane();
+        if (view.a.scale < view.fit || view.b.scale < view.fit) fitToPane();
         else applyView();
       });
 
@@ -2384,11 +3483,18 @@
       // Counted, because dragenter/dragleave also fire for every child element.
       var dragDepth = 0;
 
+      // While the pair modal is open it owns dropping and pasting.
+      function pairIsOpen() { return !els.pairModal.hidden; }
+
+      function activeDropTarget() {
+        return pairIsOpen() ? els.pairDrop : els.dropZone;
+      }
+
       window.addEventListener('dragenter', function (event) {
         if (!dragHasFiles(event)) return;
         event.preventDefault();
         dragDepth++;
-        els.dropZone.classList.add('dragging');
+        activeDropTarget().classList.add('dragging');
       });
 
       window.addEventListener('dragover', function (event) {
@@ -2404,6 +3510,7 @@
         if (!dragDepth || !event.relatedTarget) {
           dragDepth = 0;
           els.dropZone.classList.remove('dragging');
+          els.pairDrop.classList.remove('dragging');
         }
       });
 
@@ -2413,16 +3520,459 @@
         event.preventDefault();
         dragDepth = 0;
         els.dropZone.classList.remove('dragging');
-        if (event.dataTransfer) acceptFiles(event.dataTransfer.files);
+        els.pairDrop.classList.remove('dragging');
+        if (!event.dataTransfer) return;
+        if (pairIsOpen()) pairAccept(event.dataTransfer.files);
+        else acceptFiles(event.dataTransfer.files);
       });
 
       window.addEventListener('paste', function (event) {
         if (!els.viewer.hidden) return;
         var files = event.clipboardData && event.clipboardData.files;
-        if (files && files.length) {
-          event.preventDefault();
-          acceptFiles(files);
+        if (!files || !files.length) return;
+        event.preventDefault();
+        if (pairIsOpen()) pairAccept(files);
+        else acceptFiles(files);
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') return;
+        if (!els.infoModal.hidden) closeInfo();
+        else if (pairIsOpen()) closePairModal();
+      });
+
+      /* ------------------------------------------------ file details */
+
+      var infoText = '';
+
+      // Reading a file's metadata is async, and the panel can be reopened on a
+      // different image before an earlier read finishes. Only the newest open
+      // may write into it, or a slow read lands its rows under another image's
+      // name. Same reason the batch and the re-encodes carry tokens.
+      var infoToken = 0;
+
+      function infoGroup(title, rows) {
+        var section = el('div', 'infoGroup');
+        section.appendChild(el('h3', null, title));
+        var table = el('div', 'infoRows');
+        rows.forEach(function (row) {
+          table.appendChild(el('div', 'infoKey', row[0]));
+          table.appendChild(el('div', 'infoVal', row[1]));
+        });
+        section.appendChild(table);
+        return section;
+      }
+
+      function megapixels(w, h) {
+        return (Math.round((w * h) / 100000) / 10) + ' MP';
+      }
+
+      function aspect(w, h) {
+        function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+        var g = gcd(w, h) || 1;
+        var rw = w / g, rh = h / g;
+        // Anything beyond this is not a ratio anyone recognises.
+        if (rw > 40 || rh > 40) return (Math.round((w / h) * 100) / 100) + ' : 1';
+        return rw + ' : ' + rh;
+      }
+
+      async function openInfo(index) {
+        var file = state.files[index];
+        if (!file) return;
+        var entry = state.results[index];
+        var token = ++infoToken;
+
+        els.infoTitle.textContent = file.name;
+        els.infoSub.textContent = 'Reading the file...';
+        els.infoBody.textContent = '';
+        els.infoChips.textContent = '';
+
+        // Only the small preview, never the full blob - this panel should not
+        // be the thing that decodes a 37 megapixel image.
+        var thumb = entry && (entry.originalThumbUrl || entry.thumbUrl);
+        els.infoThumbWrap.hidden = !thumb;
+        if (thumb) els.infoThumb.src = thumb;
+        else els.infoThumb.removeAttribute('src');
+
+        if (entry) {
+          els.infoChips.appendChild(
+            el('span', 'infoChip', entry.width + ' x ' + entry.height));
+          els.infoChips.appendChild(
+            el('span', 'infoChip flat', megapixels(entry.width, entry.height)));
+          els.infoChips.appendChild(
+            el('span', 'infoChip flat', entry.format.toUpperCase()));
+          els.infoChips.appendChild(el('span', 'infoChip flat', formatBytes(file.size)));
+          if (!entry.skipped) {
+            els.infoChips.appendChild(el('span', 'infoChip good',
+              Math.round((1 - entry.size / entry.originalSize) * 100) + '% smaller'));
+          }
         }
+
+        els.infoModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        // Otherwise a panel opened after a long one starts part way down.
+        if (els.infoPanel) els.infoPanel.scrollTop = 0;
+
+        var groups = [];
+
+        var fileRows = [];
+        fileRows.push(['Name', file.name]);
+        fileRows.push(['Size', formatBytes(file.size) + ' (' + file.size.toLocaleString() + ' bytes)']);
+        fileRows.push(['Type', file.type || 'unknown']);
+        if (file.lastModified) {
+          fileRows.push(['Modified on disk', new Date(file.lastModified).toLocaleString()]);
+        }
+        groups.push({ title: 'File', rows: fileRows });
+
+        if (entry) {
+          var imageRows = [];
+          imageRows.push(['Dimensions', entry.width + ' x ' + entry.height + ' pixels']);
+          imageRows.push(['Megapixels', megapixels(entry.width, entry.height)]);
+          imageRows.push(['Aspect ratio', aspect(entry.width, entry.height)]);
+          imageRows.push(['Total pixels', (entry.width * entry.height).toLocaleString()]);
+          groups.push({ title: 'Image', rows: imageRows });
+
+          var outRows = [];
+          outRows.push(['Format', entry.format.toUpperCase()]);
+          outRows.push(['Size', formatBytes(entry.size)]);
+          outRows.push(['Quality used', qualityFor(index) + '%']);
+          outRows.push(['Result', !entry.skipped
+            ? Math.round((1 - entry.size / entry.originalSize) * 100) + '% smaller'
+            : (entry.size < entry.originalSize
+              ? 'Image data untouched - compressing made it larger. Smaller only ' +
+                'because the metadata was removed'
+              : 'Original kept - compressing made it larger')]);
+          if (entry.skipped) {
+            outRows.push(['Pixels', 'Identical to the original']);
+          }
+          // Worth saying plainly rather than letting it be discovered later.
+          outRows.push(['Metadata', entry.keptExif
+            ? 'EXIF carried over from the original'
+            : 'Not carried over - the compressed copy has no EXIF']);
+          groups.push({ title: 'Compressed output', rows: outRows });
+        }
+
+        var meta = await Imgmin.readMetadata(file);
+        // Closed, or reopened on another image, while the file was being read.
+        if (els.infoModal.hidden || token !== infoToken) return;
+
+        groups = groups.concat(meta.groups);
+
+        els.infoSub.textContent = meta.hasMetadata
+          ? 'Everything stored inside this file, including data not normally shown.'
+          : 'This file carries no camera metadata - it was most likely stripped by whatever produced it.';
+
+        els.infoBody.textContent = '';
+        groups.forEach(function (group) {
+          els.infoBody.appendChild(infoGroup(group.title, group.rows));
+        });
+
+        infoText = groups.map(function (group) {
+          return group.title + '\n' + group.rows.map(function (row) {
+            return '  ' + row[0] + ': ' + row[1];
+          }).join('\n');
+        }).join('\n\n');
+      }
+
+      function closeInfo() {
+        if (els.infoModal.hidden) return;
+        els.infoModal.hidden = true;
+        if (els.viewer.hidden && els.pairModal.hidden) document.body.style.overflow = '';
+
+        // Any read still in flight belongs to a panel that no longer exists.
+        infoToken++;
+
+        els.infoBody.textContent = '';
+        els.infoChips.textContent = '';
+        // Left in place, the preview keeps a decoded image alive and would show
+        // the previous file for a moment the next time the panel opens.
+        els.infoThumb.removeAttribute('src');
+        els.infoThumbWrap.hidden = true;
+        infoText = '';
+      }
+
+      els.infoClose.addEventListener('click', closeInfo);
+      els.infoDone.addEventListener('click', closeInfo);
+      els.infoModal.addEventListener('click', function (event) {
+        if (event.target === els.infoModal) closeInfo();
+      });
+      els.infoCopy.addEventListener('click', function () {
+        if (!infoText || !navigator.clipboard) return;
+        navigator.clipboard.writeText(infoText).then(function () {
+          els.infoCopy.textContent = 'Copied';
+          setTimeout(function () { els.infoCopy.textContent = 'Copy all'; }, 1400);
+        }, function () {
+          els.infoCopy.textContent = 'Copy failed';
+          setTimeout(function () { els.infoCopy.textContent = 'Copy all'; }, 1400);
+        });
+      });
+
+      /* ---------------------------------------- compare any two images */
+
+      // Self contained: its own files and its own object URLs, kept apart from
+      // the compression batch so opening one never disturbs the other.
+      // Two fixed slots rather than a growing list, so "put this one in B" is a
+      // straight assignment and slot A can stay empty while B is filled.
+      var pair = { files: [null, null], urls: [], target: null };
+
+      // Guards startPairCompare against being entered twice for the same pick.
+      var pairOpening = false;
+
+      function pairCount() {
+        return (pair.files[0] ? 1 : 0) + (pair.files[1] ? 1 : 0);
+      }
+
+      function releasePairUrls() {
+        pair.urls.forEach(function (url) { releaseUrl(url); });
+        pair.urls = [];
+      }
+
+      function buildSlot(index) {
+        var file = pair.files[index];
+        var label = index === 0 ? 'First image' : 'Second image';
+        var slot;
+
+        if (!file) {
+          slot = el('div', 'pairSlot empty');
+          slot.appendChild(el('span', 'slotHint', label));
+          slot.appendChild(el('span', 'slotHintSub', 'click to choose'));
+        } else {
+          slot = el('div', 'pairSlot');
+          slot.appendChild(el('span', 'slotTag', index === 0 ? 'A' : 'B'));
+
+          var img = el('img');
+          img.src = trackPairUrl(URL.createObjectURL(file));
+          img.alt = file.name;
+          img.decoding = 'async';
+          slot.appendChild(img);
+          slot.appendChild(el('div', 'slotName', file.name));
+          slot.appendChild(el('div', 'slotMeta', formatBytes(file.size)));
+
+          var remove = el('button', 'slotDrop', '×');
+          remove.type = 'button';
+          remove.title = 'Remove';
+          remove.setAttribute('aria-label', 'Remove ' + file.name);
+          remove.addEventListener('click', function (event) {
+            // Otherwise the slot's own click would immediately reopen the picker.
+            event.stopPropagation();
+            pair.files[index] = null;
+            renderPairSlots();
+          });
+          slot.appendChild(remove);
+        }
+
+        slot.title = file ? 'Click to replace this image' : 'Click to choose this image';
+        slot.addEventListener('click', function () { pickIntoSlot(index); });
+
+        // Dropping straight onto a slot targets that slot, rather than filling
+        // whichever happens to be free.
+        slot.addEventListener('dragover', function (event) {
+          if (!dragHasFiles(event)) return;
+          event.preventDefault();
+          event.stopPropagation();
+          slot.classList.add('over');
+        });
+        slot.addEventListener('dragleave', function () { slot.classList.remove('over'); });
+        slot.addEventListener('drop', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          slot.classList.remove('over');
+          dragDepth = 0;
+          els.pairDrop.classList.remove('dragging');
+          if (event.dataTransfer) pairAcceptAt(event.dataTransfer.files, index);
+        });
+
+        return slot;
+      }
+
+      function renderPairSlots() {
+        els.pairSlots.textContent = '';
+        // Each render mints fresh preview URLs, so the ones just detached from
+        // the DOM have to go with them. Otherwise every add, replace or remove
+        // leaves another live URL behind until the modal closes.
+        releasePairUrls();
+        els.pairSlots.appendChild(buildSlot(0));
+        els.pairSlots.appendChild(buildSlot(1));
+        els.pairGo.disabled = pairCount() !== 2;
+      }
+
+      function pickIntoSlot(index) {
+        pair.target = index;
+        els.pairInput.click();
+      }
+
+      function imagesOnly(list) {
+        return Array.prototype.slice.call(list || []).filter(function (f) {
+          return ACCEPTED.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
+        });
+      }
+
+      // Places one file in a named slot, replacing whatever was there.
+      function pairAcceptAt(list, index) {
+        var files = imagesOnly(list);
+        if (!files.length) {
+          els.pairNote.textContent = 'Those files are not images this tool can read.';
+          return;
+        }
+        pair.files[index] = files[0];
+        // A second file dropped on a slot fills the other one rather than
+        // being thrown away.
+        if (files.length > 1 && !pair.files[1 - index]) pair.files[1 - index] = files[1];
+        afterPairChange(files.length - (pair.files[1 - index] === files[1] ? 2 : 1));
+      }
+
+      // Slot previews get their own URL list, so re-rendering the slots cannot
+      // strand the ones it replaces.
+      function trackPairUrl(url) {
+        pair.urls.push(url);
+        return trackUrl(url);
+      }
+
+      // Fills whichever slots are free, in order.
+      function pairAccept(list) {
+        var incoming = imagesOnly(list);
+        if (!incoming.length) {
+          els.pairNote.textContent = 'Those files are not images this tool can read.';
+          return;
+        }
+
+        var used = 0;
+        for (var i = 0; i < 2 && used < incoming.length; i++) {
+          if (!pair.files[i]) pair.files[i] = incoming[used++];
+        }
+        // Nothing was free, so treat it as replacing the pair outright.
+        if (used === 0) {
+          pair.files[0] = incoming[0];
+          if (incoming.length > 1) pair.files[1] = incoming[1];
+          used = Math.min(2, incoming.length);
+        }
+        afterPairChange(incoming.length - used);
+      }
+
+      function afterPairChange(ignored) {
+        renderPairSlots();
+        els.pairNote.textContent = ignored > 0
+          ? 'Two images at a time - ignored ' + ignored + ' extra.'
+          : (pairCount() === 2 ? '' : 'One more image needed.');
+
+        // Both slots filled, so go straight to the comparison. The short delay
+        // lets the second thumbnail paint first, otherwise the modal appears to
+        // vanish without ever having shown what was picked.
+        if (pairCount() === 2) setTimeout(startPairCompare, 260);
+      }
+
+      function openPairModal() {
+        pair.files = [null, null];
+        pair.target = null;
+        els.pairNote.textContent = '';
+        els.pairInput.value = '';
+        renderPairSlots();
+        els.pairModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        els.pairGo.focus();
+      }
+
+      function closePairModal() {
+        if (els.pairModal.hidden) return;
+        els.pairModal.hidden = true;
+        // Only restore scrolling if the viewer is not taking over.
+        if (els.viewer.hidden) document.body.style.overflow = '';
+        pair.files = [null, null];
+        pair.target = null;
+        releasePairUrls();
+        els.pairSlots.textContent = '';
+        els.pairNote.textContent = '';
+      }
+
+      function decodeSize(url) {
+        return new Promise(function (resolve) {
+          var img = new Image();
+          img.onload = function () {
+            resolve({ w: img.naturalWidth, h: img.naturalHeight });
+          };
+          img.onerror = function () { resolve({ w: 0, h: 0 }); };
+          img.src = url;
+        });
+      }
+
+      async function startPairCompare() {
+        // Filling both slots schedules this, and the Compare button calls it
+        // directly, so the same two files can arrive here twice - the button is
+        // reachable during the 260ms wait, and again while the decode below is
+        // in flight. A second run would build a second set of object URLs that
+        // nothing is left holding, since the viewer only ever releases its own.
+        if (pairOpening || pairCount() !== 2) return;
+        pairOpening = true;
+
+        try {
+          var fileA = pair.files[0], fileB = pair.files[1];
+          els.pairGo.disabled = true;
+          els.pairNote.textContent = 'Opening comparison...';
+
+          // These two survive the modal, so they are tracked globally and
+          // released when the viewer closes.
+          var urlA = trackUrl(URL.createObjectURL(fileA));
+          var urlB = trackUrl(URL.createObjectURL(fileB));
+          var sizes = await Promise.all([decodeSize(urlA), decodeSize(urlB)]);
+
+          // Cancelled - Escape, the close button or the backdrop - while those
+          // two decodes were running. Opening now would ignore the dismissal.
+          if (!pairIsOpen()) {
+            releaseUrl(urlA);
+            releaseUrl(urlB);
+            return;
+          }
+
+          if (!sizes[0].w || !sizes[1].w) {
+            releaseUrl(urlA);
+            releaseUrl(urlB);
+            els.pairNote.textContent = 'One of those images could not be decoded.';
+            els.pairGo.disabled = false;
+            return;
+          }
+
+          closePairModal();
+
+          openViewer({
+            kind: 'pair',
+            originalUrl: urlA,
+            url: urlB,
+            originalName: fileA.name,
+            name: fileB.name,
+            originalSize: fileA.size,
+            size: fileB.size,
+            // The shared frame is the larger of the two, so neither is clipped.
+            width: Math.max(sizes[0].w, sizes[1].w),
+            height: Math.max(sizes[0].h, sizes[1].h),
+            sizeA: sizes[0],
+            sizeB: sizes[1]
+          });
+        } finally {
+          pairOpening = false;
+        }
+      }
+
+      els.pairBtn.addEventListener('click', openPairModal);
+      els.pairCancel.addEventListener('click', closePairModal);
+      els.pairClose.addEventListener('click', closePairModal);
+      els.pairGo.addEventListener('click', startPairCompare);
+
+      els.pairModal.addEventListener('click', function (event) {
+        if (event.target === els.pairModal) closePairModal();
+      });
+
+      els.pairDrop.addEventListener('click', function (event) {
+        if (event.target.closest('label, button')) return;
+        els.pairInput.click();
+      });
+
+      els.pairInput.addEventListener('change', function (event) {
+        var target = pair.target;
+        pair.target = null;
+        if (target === null) pairAccept(event.target.files);
+        else pairAcceptAt(event.target.files, target);
+        // Reset so choosing the same file again still fires a change event.
+        els.pairInput.value = '';
       });
 
       els.dropZone.addEventListener('click', function (event) {
@@ -2457,15 +4007,19 @@
 
       els.quality.addEventListener('input', function () {
         updateQualityHint();
+        saveSettings();
         scheduleRerun();
       });
-      els.format.addEventListener('change', scheduleRerun);
-      els.dither.addEventListener('change', scheduleRerun);
+      els.format.addEventListener('change', function () { saveSettings(); scheduleRerun(); });
+      els.dither.addEventListener('change', function () { saveSettings(); scheduleRerun(); });
+      els.keepExif.addEventListener('change', function () { saveSettings(); scheduleRerun(); });
 
       els.downloadBtn.addEventListener('click', downloadAll);
       els.clearBtn.addEventListener('click', clearAll);
       window.addEventListener('beforeunload', releaseUrls);
 
+      // Restore before anything reads the controls.
+      loadSettings();
       updateQualityHint();
       updateDropInfo();
       updateActions();
